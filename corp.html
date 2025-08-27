@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Netrunner Runner Draft</title>
+    <style>
+        :root {
+            --bg: #0f1220;
+            --panel: #171b2e;
+            --panel-2: #1d2240;
+            --text: #e9ecff;
+            --muted: #9aa3c7;
+            --accent: #6f9bff;
+            --good: #5cd37c;
+            --warn: #ffcc66;
+            --danger: #ff6b6b;
+            --border: #2a315a;
+            --accent-strong: #9cb7ff;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial;
+            font-size: 14px;
+        }
+
+        a {
+            color: var(--accent);
+            word-break: break-all;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px;
+            margin: 8px 0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin: 0 0 6px 0;
+        }
+
+        h1 {
+            font-size: 20px;
+        }
+
+        h2 {
+            font-size: 16px;
+        }
+
+        h3 {
+            font-size: 14px;
+        }
+
+        .row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .row>* {
+            margin: 3px 0;
+        }
+
+        input[type=text] {
+            background: var(--panel-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 8px;
+            min-width: 200px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input[type=number],
+        select {
+            background: var(--panel-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        button {
+            background: var(--accent);
+            color: #0b1027;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button.secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        button.danger-btn {
+            background: var(--danger);
+            color: #0b1027;
+            border: none;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--border);
+            background: var(--panel-2);
+            padding: 3px 6px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        }
+
+        .card {
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform .08s ease, box-shadow .08s ease, border-color .2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Keep pack card images large as requested */
+        .card img {
+            width: 100%;
+            aspect-ratio: 2.5/3.5;
+            object-fit: cover;
+            background: #0b0f22;
+            display: block;
+        }
+
+        .card .meta {
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* Highlight for the picked card */
+        .card.picked {
+            outline: 3px solid var(--accent-strong);
+            box-shadow: 0 0 0 3px rgba(156, 183, 255, 0.25) inset, 0 8px 22px rgba(111, 155, 255, 0.35);
+            border-color: var(--accent-strong);
+        }
+
+        .copy-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .copy-input {
+            background: var(--panel-2);
+            color: var(--text);
+            border: 2px solid var(--accent);
+            padding: 8px 10px;
+            border-radius: 8px;
+            min-width: 260px;
+            flex: 1 1 480px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+        }
+
+        .ok {
+            color: var(--good);
+        }
+
+        .warn {
+            color: var(--warn);
+        }
+
+        .danger {
+            color: var(--danger);
+        }
+
+        .hr {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 0;
+        }
+
+        .small {
+            font-size: 12px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .inset {
+            background: #0d1127;
+            border: 1px solid #242b55;
+            border-radius: 8px;
+            padding: 8px;
+        }
+
+        .your-seat {
+            background: #22335b;
+            color: #e9efff;
+            border-radius: 6px;
+            padding: 1px 6px;
+        }
+
+        .important {
+            border: 2px solid var(--accent-strong);
+            background: linear-gradient(180deg, rgba(111, 155, 255, 0.12), rgba(111, 155, 255, 0.06));
+            box-shadow: 0 6px 18px rgba(111, 155, 255, 0.2);
+        }
+
+        .sticky {
+            position: sticky;
+            top: 8px;
+            z-index: 40;
+        }
+
+        #postPick {
+            margin-top: 6px;
+        }
+
+        #nextActionTitle {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        #seatInfo .pill {
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="hostScreen" class="panel" style="display:none;">
+            <h1>Start a Draft</h1>
+            <div class="row">
+                <div>
+                    <label for="algoSel" class="muted small">Pack algorithm</label><br />
+                    <select id="algoSel"></select>
+                </div>
+                <div>
+                    <label for="roundsInput" class="muted small">Rounds</label><br />
+                    <input id="roundsInput" type="number" min="1" max="12" value="3" />
+                </div>
+            </div>
+            <div class="hr"></div>
+            <h3>Players</h3>
+            <div class="row">
+                <input id="playerNameInput" type="text" placeholder="Add player name" />
+                <button id="addPlayerBtn">Add</button>
+                <button id="shuffleBtn" class="secondary">Shuffle</button>
+            </div>
+            <div id="playersList" class="list" style="margin-top: 4px;"></div>
+            <div class="hr"></div>
+            <button id="generateBtn">Generate Draft & Links</button>
+            <div id="linksOut" class="panel" style="display:none; margin-top: 8px;">
+                <h2>Share these links</h2>
+                <p class="muted small">Send each link to the corresponding player. The order below is the seating order
+                    for round 1.</p>
+                <div id="linksList" class="list"></div>
+                <div class="hr"></div>
+                <div class="small">
+                    <div>Draft ID: <span id="draftIdLbl" class="mono"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="playerScreen" style="display:none;">
+            <div class="panel" id="seatPanel">
+                <div class="row" style="justify-content: space-between;">
+                    <h1>Draft</h1>
+                    <div class="row">
+                        <div class="pill">Draft ID: <span id="draftId"></span></div>
+                        <div class="pill">Round <span id="roundNum"></span>/<span id="roundTotal"></span></div>
+                        <div class="pill">Direction: <span id="directionLbl"></span></div>
+                    </div>
+                </div>
+                <div id="seatInfo" class="small muted" style="margin-top: 4px;"></div>
+            </div>
+
+
+            <div id="packPanel" class="panel" style="display:none;">
+                <div class="row" style="align-items: baseline; justify-content: space-between;">
+                    <h2 id="packTitle">Your Pack</h2>
+                    <span class="muted small" id="packHint"></span>
+                </div>
+
+                <!-- Prominent sticky link box (hidden until a pick happens) -->
+                <div id="postPick" style="display:none; margin-top: 6px;">
+                    <div id="nextLinkBox" class="panel important sticky">
+                        <h3 id="nextActionTitle">Send this link to</h3>
+                        <div class="copy-row">
+                            <input id="nextLinkInput" class="copy-input mono" readonly />
+                            <button id="copyNextBtn">Copy</button>
+                            <button id="copyUrlBtn" class="secondary">Copy URL</button>
+                            <button id="undoBtn" class="secondary">Undo pick</button>
+                        </div>
+                        <div id="nextLinkNote" class="small" style="margin-top: 2px;"></div>
+                    </div>
+                </div>
+
+                <div id="packGrid" class="grid" style="margin-top: 6px;"></div>
+            </div>
+
+            <div id="finalPanel" class="panel">
+                <h2>Your Drafted Cards</h2>
+                <div id="resultsList" class="inset mono" style="white-space: pre-line;"></div>
+                <p class="muted small" style="margin-top: 4px;">Share or save this list as needed.</p>
+            </div>
+
+            <div id="errorPanel" class="panel" style="display:none;">
+                <h2 class="danger">Something went wrong</h2>
+                <div id="errorMsg" class="small"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /*
+        Configuration
+        - Edit Config.cards to change card pool (name, image, props: {color, type, rarity, ...}).
+        - Edit Config.algorithms to define pack structures and rules.
+        - Optionally define startingCards on an algorithm: [{ id: 'card_id', count: 2 }, ...]
+          When present, each player receives these cards once at draft start in addition to packs.
+        Pack slot constraints:
+          include supports:
+            - exact value: { rarity: 'Common' }
+            - anyOf: { color: { anyOf: ['Red','Blue'] } }
+            - randomOf: { color: { randomOf: ['Red','Blue','Green'] } }
+        Global rules examples:
+          { kind: 'atLeast', property: 'color', value: 'Red', count: 2 }
+          { kind: 'atMost',  property: 'color', value: 'Blue', count: 4 }
+        */
+
+        const Config = {
+            defaultRounds: 4,
+            defaultAlgorithm: 'NineCardsOneRare',
+            packBuildMaxAttempts: 300,
+            allowDuplicates: false, // per-pack duplicate names allowed
+            cards: JSON.parse(`[{"id":"ablative_barrier","name":"Ablative Barrier","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34034.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"above_the_law","name":"Above the Law","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30060.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"active_policing","name":"Active Policing","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34102.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"operation"}},{"id":"adrian_seis","name":"Adrian Seis","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34046.webp","props":{"faction":"jinteki","rarity":"common","type":"upgrade"}},{"id":"afshar","name":"Afshar","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26058.webp","props":{"faction":"weyland_consortium","rarity":"rare","type":"ice"}},{"id":"aggressive_trendsetting","name":"Aggressive Trendsetting","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35037.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"akhet","name":"Akhet","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26123.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"amaze_amusements","name":"AMAZE Amusements","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30058.webp","props":{"faction":"nbn","rarity":"common","type":"upgrade"}},{"id":"anemone","name":"Anemone","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33043.webp","props":{"faction":"jinteki","rarity":"rare","type":"ice"}},{"id":"angelique_garza_correa","name":"Angelique Garza Correa","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34063.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"upgrade"}},{"id":"anoetic_void","name":"Anoetic Void","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30050.webp","props":{"faction":"jinteki","rarity":"rare","type":"upgrade"}},{"id":"ansel_1_0","name":"Ansel 1.0","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30038.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"ice"}},{"id":"anthill_excavation_contract","name":"Anthill Excavation Contract","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35072.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"anvil","name":"Anvil","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33124.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"architect_deployment_test","name":"Architect Deployment Test","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26032.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"argus_crackdown","name":"Argus Crackdown","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26126.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"armed_asset_protection","name":"Armed Asset Protection","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34061.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"artificial_cryptocrash","name":"Artificial Cryptocrash","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33049.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"attini","name":"Attini","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34042.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"azef_protocol","name":"Azef Protocol","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33058.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"b_1001","name":"B-1001","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34065.webp","props":{"faction":"neutral_corp","rarity":"common","type":"asset"}},{"id":"backroom_machinations","name":"Backroom Machinations","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33055.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"balanced_coverage","name":"Balanced Coverage","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34050.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"ballista","name":"Ballista","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30062.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"bass_ch1r180g4","name":"Bass CH1R180G4","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26098.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"bathynomus","name":"Bathynomus","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33044.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"behold","name":"Behold!","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34051.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"bellona","name":"Bellona","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26114.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"biawak","name":"Biawak","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35074.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"big_deal","name":"Big Deal","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33038.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"operation"}},{"id":"bigger_picture","name":"Bigger Picture","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35065.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"bladderwort","name":"Bladderwort","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33041.webp","props":{"faction":"jinteki","rarity":"common","type":"asset"}},{"id":"blood_in_the_water","name":"Blood in the Water","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33039.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"bloop","name":"Bloop","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33098.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"boto","name":"Boto","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34109.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"bran_1_0","name":"Bran 1.0","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30039.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"ice"}},{"id":"brasilia_government_grid","name":"Brasilia Government Grid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34104.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"upgrade"}},{"id":"bring_them_home","name":"Bring Them Home","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34112.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"bumi_1_0","name":"Bumi 1.0","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35041.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"business_as_usual","name":"Business As Usual","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34128.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"byte","name":"Byte!","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35050.webp","props":{"faction":"jinteki","rarity":"common","type":"asset"}},{"id":"calvin_b4l3y","name":"Calvin B4L3Y","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26033.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"capacitor","name":"Capacitor","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34116.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"cayambe_grid","name":"Cayambe Grid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26127.webp","props":{"faction":"weyland_consortium","rarity":"rare","type":"upgrade"}},{"id":"cerebral_overwriter","name":"Cerebral Overwriter","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26099.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"charlotte_cacador","name":"Charlotte Cacador","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34107.webp","props":{"faction":"jinteki","rarity":"rare","type":"asset"}},{"id":"chekist_scion","name":"Chekist Scion","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33050.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"clearinghouse","name":"Clearinghouse","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30061.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"cloud_eater","name":"Cloud Eater","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34110.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"cohort_guidance_program","name":"Cohort Guidance Program","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34108.webp","props":{"faction":"jinteki","rarity":"rare","type":"asset"}},{"id":"cold_site_server","name":"Cold Site Server","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26038.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"upgrade"}},{"id":"colossus","name":"Colossus","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26124.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"complete_image","name":"Complete Image","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26045.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"congratulations","name":"Congratulations!","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26050.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"corporate_hospitality","name":"Corporate Hospitality","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34103.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"operation"}},{"id":"csr_campaign","name":"CSR Campaign","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26064.webp","props":{"faction":"neutral_corp","rarity":"common","type":"asset"}},{"id":"cyberdex_sandbox","name":"Cyberdex Sandbox","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26128.webp","props":{"faction":"neutral_corp","rarity":"agenda","type":"agenda"}},{"id":"cybersand_harvester","name":"Cybersand Harvester","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34058.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"daily_quest","name":"Daily Quest","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26048.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"daniela_jorge_inacio","name":"Daniela Jorge Inacio","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34047.webp","props":{"faction":"jinteki","rarity":"common","type":"upgrade"}},{"id":"descent","name":"Descent","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34125.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"digital_rights_management","name":"Digital Rights Management","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26117.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"distributed_tracing","name":"Distributed Tracing","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33100.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"operation"}},{"id":"divested_trust","name":"Divested Trust","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26055.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"diviner","name":"Diviner","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30046.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"djupstad_grid","name":"Djupstad Grid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33102.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"upgrade"}},{"id":"doomscroll","name":"Doomscroll","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35063.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"dr_vientiane_keeling","name":"Dr. Vientiane Keeling","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33106.webp","props":{"faction":"jinteki","rarity":"rare","type":"asset"}},{"id":"drafter","name":"Drafter","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26101.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"ice"}},{"id":"drago_ivanov","name":"Drago Ivanov","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33051.webp","props":{"faction":"nbn","rarity":"rare","type":"asset"}},{"id":"echo","name":"Echo","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33035.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"elivagar_bifurcation","name":"Elivagar Bifurcation","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33031.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"embedded_reporting","name":"Embedded Reporting","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35059.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"eminent_domain","name":"Eminent Domain","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34122.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"empiricist","name":"Empiricist","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35052.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"end_of_the_line","name":"End of the Line","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33125.webp","props":{"faction":"weyland_consortium","rarity":"rare","type":"operation"}},{"id":"engram_flush","name":"Engram Flush","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26108.webp","props":{"faction":"jinteki","rarity":"rare","type":"ice"}},{"id":"envelopment","name":"Envelopment","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33060.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"extract","name":"Extract","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33063.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"f2p","name":"F2P","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26115.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"false_lead","name":"False Lead","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26129.webp","props":{"faction":"neutral_corp","rarity":"agenda","type":"agenda"}},{"id":"federal_fundraising","name":"Federal Fundraising","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34052.webp","props":{"faction":"nbn","rarity":"rare","type":"asset"}},{"id":"flower_sermon","name":"Flower Sermon","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26106.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"flyswatter","name":"Flyswatter","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35079.webp","props":{"faction":"neutral_corp","rarity":"common","type":"ice"}},{"id":"focus_group","name":"Focus Group","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26052.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"freedom_of_information","name":"Freedom of Information","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33112.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"front_company","name":"Front Company","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34041.webp","props":{"faction":"jinteki","rarity":"common","type":"asset"}},{"id":"fujii_asset_retrieval","name":"Fujii Asset Retrieval","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34040.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"fully_operational","name":"Fully Operational","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26036.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"operation"}},{"id":"funhouse","name":"Funhouse","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30054.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"game_over","name":"Game Over","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26053.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"ganked","name":"Ganked!","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26119.webp","props":{"faction":"nbn","rarity":"common","type":"upgrade"}},{"id":"gaslight","name":"Gaslight","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33114.webp","props":{"faction":"nbn","rarity":"rare","type":"asset"}},{"id":"gold_farmer","name":"Gold Farmer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26116.webp","props":{"faction":"nbn","rarity":"rare","type":"ice"}},{"id":"government_subsidy","name":"Government Subsidy","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30064.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"greasing_the_palm","name":"Greasing the Palm","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34037.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"operation"}},{"id":"greenmail","name":"Greenmail","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35070.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"hafrun","name":"Hafrun","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33108.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"hagen","name":"Hagen","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26035.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"hakarl_1_0","name":"Hakarl 1.0","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33036.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"hammer","name":"Hammer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34126.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"hansei_review","name":"Hansei Review","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30048.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"hearts_and_minds","name":"Hearts and Minds","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34124.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"hedge_fund","name":"Hedge Fund","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30075.webp","props":{"faction":"neutral_corp","rarity":"common","type":"operation"}},{"id":"hostile_architecture","name":"Hostile Architecture","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33122.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"humanoid_resources","name":"Humanoid Resources","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35039.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"hybrid_release","name":"Hybrid Release","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33105.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"hyoubu_precog_manifold","name":"Hyoubu Precog Manifold","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26110.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"hypoxia","name":"Hypoxia","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33101.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"operation"}},{"id":"idiosyncresis","name":"Idiosyncresis","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35061.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"increased_drop_rates","name":"Increased Drop Rates","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26054.webp","props":{"faction":"nbn","rarity":"common","type":"upgrade"}},{"id":"ip_enforcement","name":"IP Enforcement","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35066.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"isaac_liberdade","name":"Isaac Liberdade","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34129.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"upgrade"}},{"id":"ivik","name":"Ivik","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33045.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"jaguarundi","name":"Jaguarundi","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34035.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"janaina_jk_dumont_kindelan","name":"Janaina \\"JK\\" Dumont Kindelan","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34115.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"kakurenbo","name":"Kakurenbo","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26111.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"karuna","name":"Karuna","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30047.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"kessleroid","name":"Kessleroid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35075.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"key_performance_indicators","name":"Key Performance Indicators","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35077.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"kimberlite_field","name":"Kimberlite Field","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33121.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"kingmaking","name":"Kingmaking","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34113.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"klevetnik","name":"Klevetnik","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33116.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"konjin","name":"Konjin","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26109.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"la_costa_grid","name":"La Costa Grid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26112.webp","props":{"faction":"jinteki","rarity":"common","type":"upgrade"}},{"id":"lamplighter","name":"Lamplighter","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35080.webp","props":{"faction":"neutral_corp","rarity":"common","type":"ice"}},{"id":"letheia_nisei","name":"Letheia Nisei","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26046.webp","props":{"faction":"jinteki","rarity":"common","type":"upgrade"}},{"id":"lightning_laboratory","name":"Lightning Laboratory","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34097.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"logjam","name":"Logjam","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34127.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"longevity_serum","name":"Longevity Serum","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30044.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"loot_box","name":"Loot Box","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26051.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"luminal_transubstantiation","name":"Luminal Transubstantiation","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30036.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"lycian_multi_munition","name":"Lycian Multi-Munition","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34100.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"m_i_c","name":"M.I.C.","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34036.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"mahkota_langit_grid","name":"Mahkota Langit Grid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35082.webp","props":{"faction":"neutral_corp","rarity":"common","type":"upgrade"}},{"id":"malapert_data_vault","name":"Malapert Data Vault","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30066.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"upgrade"}},{"id":"manegarm_skunkworks","name":"Manegarm Skunkworks","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30042.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"upgrade"}},{"id":"maskirovka","name":"Maskirovka","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33061.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"mavirus","name":"Mavirus","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33047.webp","props":{"faction":"jinteki","rarity":"common","type":"upgrade"}},{"id":"measured_response","name":"Measured Response","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35078.webp","props":{"faction":"weyland_consortium","rarity":"rare","type":"operation"}},{"id":"mercia_b4ll4rd","name":"Mercia B4LL4RD","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35045.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"upgrade"}},{"id":"mestnichestvo","name":"Mestnichestvo","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33053.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"midnight_3_arcology","name":"Midnight-3 Arcology","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33032.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"mindscaping","name":"Mindscaping","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34045.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"mitosis","name":"Mitosis","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33046.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"mitra_aman","name":"Mitra Aman","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35056.webp","props":{"faction":"jinteki","rarity":"common","type":"upgrade"}},{"id":"moon_pool","name":"Moon Pool","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33042.webp","props":{"faction":"jinteki","rarity":"rare","type":"asset"}},{"id":"mr_hendrik","name":"Mr. Hendrik","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33103.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"upgrade"}},{"id":"mutually_assured_destruction","name":"Mutually Assured Destruction","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33064.webp","props":{"faction":"weyland_consortium","rarity":"rare","type":"operation"}},{"id":"mycoweb","name":"Mycoweb","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35053.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"n_pot","name":"N-Pot","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35064.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"nanisivik_grid","name":"Nanisivik Grid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33111.webp","props":{"faction":"jinteki","rarity":"rare","type":"upgrade"}},{"id":"nanoetching_matrix","name":"Nanoetching Matrix","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26034.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"nanomanagement","name":"Nanomanagement","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35043.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"operation"}},{"id":"napd_cordon","name":"NAPD Cordon","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26130.webp","props":{"faction":"neutral_corp","rarity":"common","type":"operation"}},{"id":"neurospike","name":"Neurospike","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30049.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"next_activation_command","name":"NEXT Activation Command","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26103.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"operation"}},{"id":"next_big_thing","name":"Next Big Thing","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35060.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"nico_campaign","name":"Nico Campaign","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30037.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"nightmare_archive","name":"Nightmare Archive","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33097.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"nonequivalent_exchange","name":"Nonequivalent Exchange","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33118.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"off_the_books","name":"Off the Books","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35071.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"offworld_office","name":"Offworld Office","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30067.webp","props":{"faction":"neutral_corp","rarity":"agenda","type":"agenda"}},{"id":"ontological_dependence","name":"Ontological Dependence","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33096.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"oppo_research","name":"Oppo Research","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34055.webp","props":{"faction":"nbn","rarity":"rare","type":"operation"}},{"id":"oracle_thinktank","name":"Oracle Thinktank","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34049.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"orbital_superiority","name":"Orbital Superiority","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30068.webp","props":{"faction":"neutral_corp","rarity":"agenda","type":"agenda"}},{"id":"otto_campaign","name":"Otto Campaign","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35040.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"palisade","name":"Palisade","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30072.webp","props":{"faction":"neutral_corp","rarity":"common","type":"ice"}},{"id":"peer_review","name":"Peer Review","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35055.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"petty_cash","name":"Petty Cash","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35081.webp","props":{"faction":"neutral_corp","rarity":"rare","type":"operation"}},{"id":"pharos","name":"Pharos","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30063.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"phat_gioan_baotixita","name":"Phat Gioan Baotixita","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35051.webp","props":{"faction":"jinteki","rarity":"rare","type":"asset"}},{"id":"phoneutria","name":"Phoneutria","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34043.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"ping","name":"Ping","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30055.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"piranhas","name":"Piranhas","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34117.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"pivot","name":"Pivot","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34062.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"plutus","name":"Plutus","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35073.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"post_truth_dividend","name":"Post-Truth Dividend","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33113.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"prana_condenser","name":"Prana Condenser","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26107.webp","props":{"faction":"jinteki","rarity":"common","type":"asset"}},{"id":"predictive_planogram","name":"Predictive Planogram","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30056.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"project_ingatan","name":"Project Ingatan","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35038.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"project_vacheron","name":"Project Vacheron","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26097.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"project_yagi_uda","name":"Project Yagi-Uda","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26040.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"proprionegation","name":"Proprionegation","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35048.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"public_access_plaza","name":"Public Access Plaza","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35062.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"public_health_portal","name":"Public Health Portal","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26042.webp","props":{"faction":"jinteki","rarity":"common","type":"asset"}},{"id":"public_trail","name":"Public Trail","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30057.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"pulse","name":"Pulse","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33099.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"reaper_function","name":"Reaper Function","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33107.webp","props":{"faction":"jinteki","rarity":"rare","type":"asset"}},{"id":"red_level_clearance","name":"Red Level Clearance","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26037.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"operation"}},{"id":"reduced_service","name":"Reduced Service","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26062.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"upgrade"}},{"id":"refuge_campaign","name":"Refuge Campaign","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33033.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"regenesis","name":"Regenesis","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33040.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"regolith_mining_license","name":"Regolith Mining License","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30071.webp","props":{"faction":"neutral_corp","rarity":"rare","type":"asset"}},{"id":"regulatory_capture","name":"Regulatory Capture","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33120.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"remastered_edition","name":"Remastered Edition","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26047.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"retribution","name":"Retribution","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30065.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"rime","name":"Rime","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26065.webp","props":{"faction":"neutral_corp","rarity":"common","type":"ice"}},{"id":"roughneck_repair_squad","name":"Roughneck Repair Squad","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26057.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"saisentan","name":"Saisentan","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26044.webp","props":{"faction":"jinteki","rarity":"rare","type":"ice"}},{"id":"salvo_testing","name":"Salvo Testing","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34031.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"sandstone","name":"Sandstone","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26059.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"scapenet","name":"Scapenet","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26104.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"operation"}},{"id":"scatter_field","name":"Scatter Field","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35042.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"sds_drone_deployment","name":"SDS Drone Deployment","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26056.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"seamless_launch","name":"Seamless Launch","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30040.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"operation"}},{"id":"secure_and_protect","name":"Secure and Protect","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26061.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"see_how_they_run","name":"See How They Run","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34105.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"semak_samun","name":"Semak-samun","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35054.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"send_a_message","name":"Send a Message","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30069.webp","props":{"faction":"neutral_corp","rarity":"agenda","type":"agenda"}},{"id":"seraph","name":"Seraph","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34118.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"sericulture_expansion","name":"Sericulture Expansion","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35049.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"shipment_from_vladisibirsk","name":"Shipment from Vladisibirsk","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33119.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"simulation_reset","name":"Simulation Reset","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33110.webp","props":{"faction":"jinteki","rarity":"common","type":"operation"}},{"id":"sisyphus_protocol","name":"Sisyphus Protocol","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34106.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"slash_and_burn_agriculture","name":"Slash and Burn Agriculture","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34057.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"sorocaban_blade","name":"Sorocaban Blade","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34101.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"spin_doctor","name":"Spin Doctor","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30053.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"sprint","name":"Sprint","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30041.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"operation"}},{"id":"starlit_knight","name":"Starlit Knight","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34053.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"stavka","name":"Stavka","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33062.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"stegodon_mk_iv","name":"Stegodon MK IV","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34032.webp","props":{"faction":"haas_bioroid","rarity":"agenda","type":"agenda"}},{"id":"sting","name":"Sting!","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26041.webp","props":{"faction":"jinteki","rarity":"agenda","type":"agenda"}},{"id":"stoke_the_embers","name":"Stoke the Embers","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34114.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"sudden_commandment","name":"Sudden Commandment","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34119.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"superconducting_hub","name":"Superconducting Hub","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30070.webp","props":{"faction":"neutral_corp","rarity":"agenda","type":"agenda"}},{"id":"superdeep_borehole","name":"Superdeep Borehole","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33123.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"svyatogor_excavator","name":"Svyatogor Excavator","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33059.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"syailendra","name":"Syailendra","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35076.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"sync_rerouting","name":"SYNC Rerouting","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26118.webp","props":{"faction":"nbn","rarity":"common","type":"operation"}},{"id":"tatu_bola","name":"Tatu-Bola","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34044.webp","props":{"faction":"jinteki","rarity":"rare","type":"ice"}},{"id":"the_basalt_spire","name":"The Basalt Spire","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34123.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"the_holo_man","name":"The Holo Man","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34120.webp","props":{"faction":"nbn","rarity":"rare","type":"upgrade"}},{"id":"the_powers_that_be","name":"The Powers That Be","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34130.webp","props":{"faction":"neutral_corp","rarity":"common","type":"asset"}},{"id":"tiered_subscription","name":"Tiered Subscription","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26049.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"tithe","name":"Tithe","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30073.webp","props":{"faction":"neutral_corp","rarity":"common","type":"ice"}},{"id":"tomorrows_headline","name":"Tomorrow's Headline","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30052.webp","props":{"faction":"nbn","rarity":"agenda","type":"agenda"}},{"id":"top_down_solutions","name":"Top-Down Solutions","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35044.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"operation"}},{"id":"touch_ups","name":"Touch-ups","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35067.webp","props":{"faction":"nbn","rarity":"rare","type":"operation"}},{"id":"tranquility_home_grid","name":"Tranquility Home Grid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26105.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"upgrade"}},{"id":"transport_monopoly","name":"Transport Monopoly","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26121.webp","props":{"faction":"weyland_consortium","rarity":"agenda","type":"agenda"}},{"id":"trebuchet","name":"Trebuchet","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26060.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"tree_line","name":"Tree Line","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34059.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"tributary","name":"Tributary","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34111.webp","props":{"faction":"jinteki","rarity":"rare","type":"ice"}},{"id":"trieste_model_bioroids","name":"Trieste Model Bioroids","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33034.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"trust_operation","name":"Trust Operation","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33065.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"operation"}},{"id":"tucana","name":"Tucana","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34064.webp","props":{"faction":"weyland_consortium","rarity":"rare","type":"upgrade"}},{"id":"tyr","name":"Tyr","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26102.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"ubiquitous_vig","name":"Ubiquitous Vig","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33052.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"unsmiling_tsarevna","name":"Unsmiling Tsarevna","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33117.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"urtica_cipher","name":"Urtica Cipher","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30045.webp","props":{"faction":"jinteki","rarity":"common","type":"asset"}},{"id":"valentao","name":"Valentao","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34060.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"vampyronassa","name":"Vampyronassa","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33109.webp","props":{"faction":"jinteki","rarity":"common","type":"ice"}},{"id":"vaporframe_fabricator","name":"Vaporframe Fabricator","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26100.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"vasilisa","name":"Vasilisa","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33054.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"vera_ivanovna_shuyskaya","name":"Vera Ivanovna Shuyskaya","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33115.webp","props":{"faction":"nbn","rarity":"common","type":"asset"}},{"id":"virtual_service_agent","name":"Virtual Service Agent","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34054.webp","props":{"faction":"nbn","rarity":"common","type":"ice"}},{"id":"vladisibirsk_city_grid","name":"Vladisibirsk City Grid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33056.webp","props":{"faction":"nbn","rarity":"common","type":"upgrade"}},{"id":"vovo_ozetti","name":"Vovo Ozetti","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34038.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"upgrade"}},{"id":"vulnerability_audit","name":"Vulnerability Audit","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26063.webp","props":{"faction":"neutral_corp","rarity":"agenda","type":"agenda"}},{"id":"wage_workers","name":"Wage Workers","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34033.webp","props":{"faction":"haas_bioroid","rarity":"rare","type":"asset"}},{"id":"wall_to_wall","name":"Wall to Wall","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26122.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"asset"}},{"id":"warm_reception","name":"Warm Reception","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34098.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"wave","name":"Wave","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33037.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"ice"}},{"id":"whitespace","name":"Whitespace","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30074.webp","props":{"faction":"neutral_corp","rarity":"common","type":"ice"}},{"id":"winchester","name":"Winchester","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26125.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"ice"}},{"id":"working_prototype","name":"Working Prototype","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34099.webp","props":{"faction":"haas_bioroid","rarity":"common","type":"asset"}},{"id":"yakov_erikovich_avdakov","name":"Yakov Erikovich Avdakov","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33126.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"upgrade"}},{"id":"your_digital_life","name":"Your Digital Life","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34056.webp","props":{"faction":"nbn","rarity":"rare","type":"operation"}},{"id":"zato_city_grid","name":"ZATO City Grid","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33127.webp","props":{"faction":"weyland_consortium","rarity":"common","type":"upgrade"}}]`),
+            algorithms: {
+                NineCardsOneRare: {
+                    description: '9 card pack: 1 good on trash or busto',
+                    slots: [
+                        { count: 1, include: { rarity: 'rare' } },
+                        { count: 1, include: { type: 'agenda' } },
+                        {
+                            count: 1, include: {
+                                type: 'agenda', anyOf: { faction: ["haas_bioroid", "jinteki", "nbn", "weyland_consortium"] }
+                            }
+                        },
+                        {
+                            count: 1, include: {
+                                rarity: 'common'
+                            }
+                        },
+                        {
+                            count: 1, include: {
+                                rarity: 'common'
+                            }
+                        },
+                        {
+                            count: 1, include: {
+                                rarity: 'common', faction: 'haas_bioroid'
+                            }
+                        },
+                        {
+                            count: 1, include: {
+                                rarity: 'common', faction: 'jinteki'
+                            }
+                        },
+                        {
+                            count: 1, include: {
+                                rarity: 'common', faction: 'nbn'
+                            }
+                        },
+                        {
+                            count: 1, include: {
+                                rarity: 'common', faction: 'weyland_consortium'
+                            }
+                        },
+                    ],
+                    rules: [
+                        {
+                            kind: 'atLeast', property: 'type', value: 'asset', count: 2
+                        },
+                        {
+                            kind: 'atLeast', property: 'type', value: 'ice', count: 2
+                        },
+                        {
+                            kind: 'atLeast', property: 'type', value: 'operation', count: 2
+                        },
+                    ],
+                    // Optional: fixed starting cards given once per player at draft start
+                    startingCards: [
+                        {
+                            id: 'offworld_office', count: 1
+                        },
+                        {
+                            id: 'orbital_superiority', count: 1
+                        },
+                        {
+                            id: 'send_a_message', count: 1
+                        },
+                        {
+                            id: 'superconducting_hub', count: 1
+                        },
+                        {
+                            id: 'regolith_mining_license', count: 1
+                        },
+                        {
+                            id: 'palisade', count: 1
+                        },
+                        {
+                            id: 'tithe', count: 1
+                        },
+                        {
+                            id: 'whitespace', count: 1
+                        },
+                        {
+                            id: 'hedge_fund', count: 1
+                        },
+                    ]
+                },
+            }
+        };
+
+        const CARD_BY_ID = Object.fromEntries(Config.cards.map(c => [c.id, c]));
+
+        // Utilities
+        const $ = sel => document.querySelector(sel);
+        const el = (tag, cls, txt) => { const x = document.createElement('tag' === tag ? 'div' : tag); if (cls) x.className = cls; if (txt != null) x.textContent = txt; return x; };
+        function randInt(n) { return Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296 * n); }
+        function shuffleInPlace(a) { for (let i = a.length - 1; i > 0; i--) { const j = randInt(i + 1);[a[i], a[j]] = [a[j], a[i]]; } return a; }
+        function uid(len = 8) { const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < len; i++) s += alphabet[randInt(alphabet.length)]; return s; }
+        function enc(obj) { return encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(obj))))); }
+        function dec(str) { return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(str))))); }
+        function qs() { const out = {}; const q = new URLSearchParams(location.search); for (const [k, v] of q.entries()) out[k] = v; return out; }
+        function setError(msg) {
+            $('#errorMsg').textContent = msg;
+            $('#errorPanel').style.display = '';
+            $('#packPanel').style.display = 'none';
+        }
+
+        // Pack building
+        function cardMatchesInclude(card, includeObj) {
+            if (!includeObj) return true;
+            for (const [prop, expect] of Object.entries(includeObj)) {
+                const v = card.props[prop];
+                if (typeof expect === 'string' || typeof expect === 'number' || typeof expect === 'boolean') {
+                    if (v !== expect) return false;
+                } else if (expect && typeof expect === 'object') {
+                    if (Array.isArray(expect.anyOf)) {
+                        if (!expect.anyOf.includes(v)) return false;
+                    } else if (Array.isArray(expect.not)) {
+                        if (expect.not.includes(v)) return false;
+                    } else if (expect.randomOf) {
+                        if (!expect.randomChoice) {
+                            expect.randomChoice = expect.randomOf[randInt(expect.randomOf.length)];
+                        }
+                        if (v !== expect.randomChoice) return false;
+                    }
+                }
+            }
+            return true;
+        }
+        function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+        function resolveSlotIncludeRandoms(include) {
+            const resolved = deepClone(include || {});
+            for (const [k, v] of Object.entries(resolved)) {
+                if (v && typeof v === 'object' && v.randomOf) {
+                    const choice = v.randomOf[randInt(v.randomOf.length)];
+                    resolved[k] = choice;
+                }
+            }
+            return resolved;
+        }
+        function buildPack(algorithmName) {
+            const algo = Config.algorithms[algorithmName] || Config.algorithms[Config.defaultAlgorithm];
+            if (!algo) throw new Error('Algorithm not found.');
+            const cards = Config.cards;
+
+            for (let attempt = 0; attempt < Config.packBuildMaxAttempts; attempt++) {
+                const chosen = [];
+                for (const slot of algo.slots) {
+                    const includeResolved = resolveSlotIncludeRandoms(slot.include || {});
+                    for (let i = 0; i < slot.count; i++) {
+                        const pool = cards.filter(c => cardMatchesInclude(c, includeResolved));
+                        if (!pool.length) { chosen.length = 0; break; }
+                        let pick;
+                        if (Config.allowDuplicates) {
+                            pick = pool[randInt(pool.length)];
+                        } else {
+                            const avail = pool.filter(x => !chosen.some(y => y.id === x.id));
+                            if (!avail.length) { chosen.length = 0; break; }
+                            pick = avail[randInt(avail.length)];
+                        }
+                        chosen.push(pick);
+                    }
+                    if (!chosen.length && slot.count) break;
+                }
+                if (!chosen.length) continue;
+
+                const ok = (algo.rules || []).every(rule => {
+                    const count = chosen.reduce((acc, c) => acc + (c.props[rule.property] === rule.value ? 1 : 0), 0);
+                    if (rule.kind === 'atLeast') return count >= rule.count;
+                    if (rule.kind === 'atMost') return count <= rule.count;
+                    return true;
+                });
+                if (ok) {
+                    return chosen.map(c => c.id);
+                }
+            }
+            return null;
+        }
+
+        // Compute total pack size for an algorithm
+        function computePackSize(algorithmName) {
+            const algo = Config.algorithms[algorithmName] || {};
+            const slots = Array.isArray(algo.slots) ? algo.slots : [];
+            return slots.reduce((sum, s) => sum + (s && s.count ? s.count : 0), 0);
+        }
+
+        // Local Storage
+        function lsKey(draftId, seatIndex) { return `draft_${draftId}_p${seatIndex}_picks`; }
+        function packsKey(draftId, seatIndex) { return `draft_${draftId}_p${seatIndex}_prepacks`; }
+        function startingAppliedKey(draftId, seatIndex) { return `draft_${draftId}_p${seatIndex}_starting_applied`; }
+        function getPicks(draftId, seatIndex) {
+            let obj = {};
+            try { obj = JSON.parse(localStorage.getItem(lsKey(draftId, seatIndex)) || '{}') || {}; } catch { }
+            if (!obj.rounds) obj.rounds = {};
+            return obj;
+        }
+        function savePicks(draftId, seatIndex, obj) {
+            localStorage.setItem(lsKey(draftId, seatIndex), JSON.stringify(obj));
+        }
+        function getPrePacks(draftId, seatIndex) {
+            try { return JSON.parse(localStorage.getItem(packsKey(draftId, seatIndex)) || 'null'); } catch { return null; }
+        }
+        function savePrePacks(draftId, seatIndex, obj) {
+            localStorage.setItem(packsKey(draftId, seatIndex), JSON.stringify(obj));
+        }
+        function addPick(draftId, seatIndex, round, cardId, packCount) {
+            const p = getPicks(draftId, seatIndex);
+            const r = String(round);
+            if (!p.rounds[r]) p.rounds[r] = [];
+            const arr = p.rounds[r];
+
+            // Overwrite existing pick for this packCount, else append a new record
+            const idx = arr.findIndex(x => typeof x === 'object' && x && x.packCount === packCount);
+            if (idx !== -1) {
+                arr[idx].cardId = cardId;
+            } else {
+                arr.push({ cardId, packCount });
+            }
+            p.rounds[r] = arr;
+            savePicks(draftId, seatIndex, p);
+        }
+        function undoPick(draftId, seatIndex, round, expectedCardId, packCount) {
+            const p = getPicks(draftId, seatIndex);
+            const r = String(round);
+            const arr = p.rounds[r] || [];
+            let idx = -1;
+
+            if (typeof packCount === 'number') {
+                idx = arr.findIndex(x => typeof x === 'object' && x && x.packCount === packCount);
+            }
+
+            if (idx !== -1) {
+                arr.splice(idx, 1);
+            } else {
+                // Backward compatibility with legacy string entries
+                const toId = v => (typeof v === 'string' ? v : v && v.cardId);
+                if (arr.length && toId(arr[arr.length - 1]) === expectedCardId) {
+                    arr.pop();
+                } else {
+                    const lastIdx = arr.map(toId).lastIndexOf(expectedCardId);
+                    if (lastIdx !== -1) arr.splice(lastIdx, 1);
+                }
+            }
+
+            p.rounds[r] = arr;
+            savePicks(draftId, seatIndex, p);
+        }
+
+        // URL builders
+        function buildLink({ d, p, pl, r, dir, alg, R, start, pack, pp }) {
+            const q = new URLSearchParams();
+            q.set('d', d);
+            q.set('p', String(p));
+            q.set('pl', enc(pl));
+            q.set('r', String(r));
+            q.set('dir', String(dir));
+            q.set('alg', alg);
+            q.set('R', String(R));
+            if (start) q.set('start', '1');
+            if (pack) q.set('pack', enc(pack));
+            if (pp) q.set('pp', enc(pp));
+            const url = `${location.origin}${location.pathname}?${q.toString()}`;
+            return url;
+        }
+        function nextSeatIndex(p, dir, n) {
+            return ((p + (dir | 0)) % n + n) % n;
+        }
+
+        // Host UI
+        const hostState = { players: [] };
+        function renderPlayers() {
+            const list = $('#playersList');
+            list.innerHTML = '';
+            if (!hostState.players.length) {
+                const i = el('div', 'muted small', 'No players yet. Add names above.');
+                list.appendChild(i);
+                return;
+            }
+            hostState.players.forEach((name, idx) => {
+                const row = el('div', 'row');
+                row.style.justifyContent = 'space-between';
+                const left = el('div', null);
+                left.appendChild(el('span', 'pill', `Seat ${idx + 1}`));
+                left.append(' ');
+                left.appendChild(el('strong', null, name));
+                const right = el('div', null);
+                const up = el('button', 'secondary'); up.textContent = '↑'; up.onclick = () => { if (idx > 0) { [hostState.players[idx - 1], hostState.players[idx]] = [hostState.players[idx], hostState.players[idx - 1]]; renderPlayers(); } };
+                const down = el('button', 'secondary'); down.textContent = '↓'; down.onclick = () => { if (idx < hostState.players.length - 1) { [hostState.players[idx + 1], hostState.players[idx]] = [hostState.players[idx], hostState.players[idx + 1]]; renderPlayers(); } };
+                const del = el('button', 'secondary'); del.textContent = 'Remove'; del.onclick = () => { hostState.players.splice(idx, 1); renderPlayers(); };
+                right.appendChild(up); right.appendChild(down); right.append(' '); right.appendChild(del);
+                row.appendChild(left); row.appendChild(right);
+                list.appendChild(row);
+            });
+        }
+        function setupHost() {
+            const sel = $('#algoSel');
+            sel.innerHTML = '';
+            Object.entries(Config.algorithms).forEach(([name, cfg]) => {
+                const o = document.createElement('option'); o.value = name; o.textContent = `${name} - ${cfg.description || ''}`; sel.appendChild(o);
+            });
+            sel.value = Config.defaultAlgorithm;
+            $('#roundsInput').value = Config.defaultRounds;
+
+            $('#addPlayerBtn').onclick = () => {
+                const v = $('#playerNameInput').value.trim();
+                if (!v) return;
+                hostState.players.push(v);
+                $('#playerNameInput').value = '';
+                renderPlayers();
+            };
+            $('#playerNameInput').onkeydown = (e) => { if (e.key === 'Enter') $('#addPlayerBtn').click(); };
+            $('#shuffleBtn').onclick = () => { shuffleInPlace(hostState.players); renderPlayers(); };
+            $('#generateBtn').onclick = () => {
+                const players = hostState.players.map(x => x.trim()).filter(Boolean);
+                if (players.length < 2) { alert('Please add at least 2 players.'); return; }
+                const rounds = Math.max(1, Math.min(24, parseInt($('#roundsInput').value || '3', 10)));
+                const alg = $('#algoSel').value;
+                const d = uid(8);
+                const pl = players.slice();
+                const R = rounds;
+                const dir = 1;
+
+                // Pre-generate packs for all seats and all rounds
+                const allPrePacksBySeat = []; // array of objects: { "1": packIds[], "2": packIds[], ... }
+                for (let seat = 0; seat < pl.length; seat++) {
+                    const roundsObj = {};
+                    for (let round = 1; round <= R; round++) {
+                        const pack = buildPack(alg);
+                        if (!pack) {
+                            alert('Could not build a pack with the current algorithm and rules. Please adjust configuration.');
+                            return;
+                        }
+                        roundsObj[String(round)] = pack;
+                    }
+                    allPrePacksBySeat[seat] = roundsObj;
+                }
+
+                const links = [];
+                for (let p = 0; p < pl.length; p++) {
+                    const firstPack = allPrePacksBySeat[p]["1"];
+                    const pp = allPrePacksBySeat[p];
+                    const url = buildLink({ d, p, pl, r: 1, dir, alg, R, start: true, pack: firstPack, pp });
+                    links.push({ name: pl[p], url });
+                }
+                $('#linksOut').style.display = '';
+                $('#draftIdLbl').textContent = d;
+                const list = $('#linksList'); list.innerHTML = '';
+                links.forEach((lnk, idx) => {
+                    const it = el('div', 'panel');
+                    const who = el('div', null);
+                    who.appendChild(el('strong', null, `${idx + 1}. ${lnk.name}`));
+                    it.appendChild(who);
+                    const cr = el('div', 'copy-row');
+                    const input = el('input', 'copy-input mono'); input.readOnly = true; input.value = lnk.url; input.onclick = () => input.select();
+                    const btn = el('button', null, 'Copy');
+                    btn.onclick = async () => {
+                        try { await navigator.clipboard.writeText(lnk.url); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1200); }
+                        catch { input.select(); document.execCommand('copy'); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1200); }
+                    };
+                    cr.appendChild(input); cr.appendChild(btn);
+                    it.appendChild(cr);
+                    list.appendChild(it);
+                });
+            };
+            $('#hostScreen').style.display = '';
+        }
+
+        // Player UI
+        function renderSeatInfo(pl, p, r, dir, R) {
+            $('#draftId').textContent = params.d;
+            $('#roundNum').textContent = r;
+            $('#roundTotal').textContent = R;
+            $('#directionLbl').textContent = dir === 1 ? 'Clockwise' : 'Counter-clockwise';
+            const names = pl;
+            const seats = el('div', 'row');
+            names.forEach((name, idx) => {
+                const pill = el('span', 'pill', `${idx + 1}. ${name}`);
+                if (idx === p) { pill.classList.add('your-seat'); }
+                seats.appendChild(pill);
+            });
+            $('#seatInfo').innerHTML = '';
+            $('#seatInfo').appendChild(seats);
+        }
+
+
+        function makeCard(cardObj, clickable = true, onPick = null) {
+            const card = el('div', 'card');
+            card.dataset.cardId = cardObj.id;
+            const img = document.createElement('img'); img.src = cardObj.image; img.alt = cardObj.name;
+            card.appendChild(img);
+            const meta = el('div', 'meta');
+            meta.appendChild(el('div', null, cardObj.name));
+            // No properties displayed for compactness
+            card.appendChild(meta);
+            if (clickable) {
+                card.onclick = () => onPick && onPick(cardObj);
+            }
+            return card;
+        }
+
+        function aggregateCounts(d, p) {
+            const data = getPicks(d, p);
+            const countsByName = {};
+            const toId = v => (typeof v === 'string' ? v : v && v.cardId);
+
+            for (const [round, picks] of Object.entries(data.rounds || {})) {
+                (picks || []).forEach(item => {
+                    const id = toId(item);
+                    if (!id) return;
+                    const c = CARD_BY_ID[id];
+                    const name = c ? c.name : id;
+                    countsByName[name] = (countsByName[name] || 0) + 1;
+                });
+            }
+            const lines = Object.entries(countsByName)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([name, count]) => `${count} ${name}`);
+            return lines;
+        }
+
+        // Prominent link box controls. Accepts optional onUndo callback and copyPrefix text.
+        // Added: severe flag to increase warning severity when restoring from a reload.
+        function setNextLink(link, title, note, onUndo, copyPrefix, severe = false) {
+            $('#nextActionTitle').textContent = title;
+            const input = $('#nextLinkInput'); input.value = link; input.onclick = () => input.select();
+            const btn = $('#copyNextBtn');
+            const btnUrl = $('#copyUrlBtn');
+
+            const prefixText = copyPrefix ? `${copyPrefix} ` : '';
+            btn.onclick = async () => {
+                const text = `${prefixText}${link}`;
+                try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1200); }
+                catch { input.select(); document.execCommand('copy'); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1200); }
+            };
+            btnUrl.onclick = async () => {
+                try { await navigator.clipboard.writeText(link); btnUrl.textContent = 'URL Copied!'; setTimeout(() => btnUrl.textContent = 'Copy URL', 1200); }
+                catch { input.select(); document.execCommand('copy'); btnUrl.textContent = 'URL Copied!'; setTimeout(() => btnUrl.textContent = 'Copy URL', 1200); }
+            };
+
+            const undoBtn = $('#undoBtn');
+            undoBtn.onclick = () => { if (onUndo) onUndo(); };
+            undoBtn.disabled = !onUndo;
+
+            const baseWarn = 'Note: If you undo your pick, this link will change. Do not send a previously copied link.';
+            const strongWarn = 'Important: You already made this pick and reloaded. Undoing now may break the whole draft if links were already shared. Only undo if everyone at the table coordinates and discards any links that depended on this pick.';
+            const icon = severe ? '⚠️' : '⚠';
+            const cls = severe ? 'danger' : 'warn';
+            const warnText = severe ? strongWarn : baseWarn;
+
+            $('#nextLinkNote').innerHTML = `<span class="${cls}">${icon}</span> ${note || ''} ${note ? '<br/>' : ''}<span class="small ${cls}">${warnText}</span>`;
+            $('#postPick').style.display = '';
+            // Keep the link visible and prominent
+            $('#nextLinkBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function runPlayerFlow(params) {
+            const pl = dec(params.pl);
+            const p = parseInt(params.p, 10);
+            const r = parseInt(params.r, 10);
+            const dir = parseInt(params.dir, 10) === -1 ? -1 : 1;
+            const alg = params.alg || Config.defaultAlgorithm;
+            const R = parseInt(params.R, 10) || Config.defaultRounds;
+            const d = params.d;
+            if (!Array.isArray(pl) || p < 0 || p >= pl.length || !d) { setError('Invalid link. Missing or incorrect parameters.'); return; }
+
+            // Accept incoming pre-packs and persist for this seat
+            let incomingPP = null;
+            if (params.pp) {
+                try { incomingPP = dec(params.pp); } catch { incomingPP = null; }
+            }
+            if (incomingPP) {
+                savePrePacks(d, p, incomingPP);
+            }
+
+            // Apply starting cards once per draft from algorithm config (not from URL)
+            const alreadyApplied = localStorage.getItem(startingAppliedKey(d, p)) === '1';
+            if (!alreadyApplied) {
+                const algCfg = Config.algorithms[alg] || {};
+                const startingCards = Array.isArray(algCfg.startingCards) ? algCfg.startingCards : [];
+                if (startingCards.length) {
+                    const picksObj = getPicks(d, p);
+                    const r0 = '0';
+                    if (!picksObj.rounds[r0]) picksObj.rounds[r0] = [];
+                    for (const sc of startingCards) {
+                        const id = Array.isArray(sc) ? sc[0] : sc && sc.id;
+                        const count = Array.isArray(sc) ? (sc[1] || 1) : ((sc && sc.count) || 1);
+                        if (!id) continue;
+                        for (let i = 0; i < count; i++) {
+                            picksObj.rounds[r0].push({ cardId: id, packCount: 0, starting: true });
+                        }
+                    }
+                    savePicks(d, p, picksObj);
+                }
+                localStorage.setItem(startingAppliedKey(d, p), '1');
+            }
+
+            $('#resultsList').textContent = aggregateCounts(d, p).join('\n');
+            renderSeatInfo(pl, p, r, dir, R);
+
+            const isStart = !!params.start;
+            let packIds = null;
+
+            // Prefer using provided pack (host-prebuilt for round starts, or passed packs mid-round)
+            if (params.pack) {
+                try {
+                    packIds = dec(params.pack);
+                    if (!Array.isArray(packIds)) throw new Error('not array');
+                    $('#packHint').textContent = isStart ? 'New pack. Pick one card.' : 'Pack passed to you. Pick one card.';
+                } catch (e) { setError('Could not read incoming pack.'); return; }
+            } else if (isStart) {
+                // Use pre-generated pack for this round if available
+                const storedPP = getPrePacks(d, p);
+                const fromPP = storedPP && storedPP[String(r)];
+                if (fromPP && Array.isArray(fromPP)) {
+                    packIds = fromPP.slice();
+                    $('#packHint').textContent = 'New pack. Pick one card.';
+                } else {
+                    // Fallback for backwards compatibility if host didn't prebuild
+                    const built = buildPack(alg);
+                    if (!built) { setError('Could not build a pack with the current algorithm and rules. Please adjust configuration.'); return; }
+                    packIds = built;
+                    $('#packHint').textContent = 'New pack. Pick one card.';
+                }
+            } else {
+                setError('No pack data present.');
+                return;
+            }
+
+            $('#packPanel').style.display = '';
+            const grid = $('#packGrid'); grid.innerHTML = '';
+            let currentPickState = null;
+
+            const packSize = computePackSize(alg);
+
+            function applyPickUI(pickedId, { save = true, severe = false } = {}) {
+                if (grid.dataset.locked === '1') return;
+                grid.dataset.locked = '1';
+                const packCountAtPick = packIds.length;
+
+                if (save) {
+                    // Save/overwrite pick keyed by (round, packCount)
+                    addPick(d, p, r, pickedId, packCountAtPick);
+                }
+                $('#resultsList').textContent = aggregateCounts(d, p).join('\n');
+
+                currentPickState = { pickedId, packCount: packCountAtPick, originalPack: packIds.slice() };
+
+                // Compute remaining
+                const idx = packIds.indexOf(pickedId);
+                const remaining = packIds.slice();
+                if (idx !== -1) remaining.splice(idx, 1);
+
+                function undoFlow() {
+                    // Undo by (round, packCount)
+                    undoPick(d, p, r, currentPickState.pickedId, currentPickState.packCount);
+                    $('#postPick').style.display = 'none';
+                    packIds = currentPickState.originalPack.slice();
+                    grid.style.opacity = '';
+                    renderPackGrid();
+                }
+
+                // Dim only non-picked cards and highlight the picked card
+                Array.from(grid.children).forEach(ch => {
+                    if (ch.dataset.cardId === pickedId) {
+                        ch.style.opacity = '';
+                        ch.classList.add('picked');
+                    } else {
+                        ch.style.opacity = '0.35';
+                    }
+                });
+
+                if (remaining.length > 0) {
+                    const n = pl.length;
+                    const np = nextSeatIndex(p, dir, n);
+                    const link = buildLink({ d, p: np, pl, r, dir, alg, R, pack: remaining });
+                    // New prefix logic: show the number of cards taken so far after your pick (1,2,3,...)
+                    const labelNumber = Math.max(1, packSize - packCountAtPick + 1);
+                    const prefix = `Round ${r}, Card ${labelNumber}:`;
+                    setNextLink(link, `Send this link to ${pl[np]}`, 'Share this link with the next player. They will receive the pack without your chosen card.', undoFlow, prefix, severe);
+                } else {
+                    handleEmptyAfterPick(pl, p, r, dir, alg, R, d, undoFlow, severe);
+                }
+            }
+
+            function renderPackGrid() {
+                grid.innerHTML = '';
+                grid.dataset.locked = '0';
+                const packCards = packIds.map(id => CARD_BY_ID[id]).filter(Boolean);
+                if (!packCards.length) { handleEmptyAfterPick(pl, p, r, dir, alg, R, d, null); return; }
+                packCards.forEach(c => {
+                    const node = makeCard(c, true, (picked) => {
+                        applyPickUI(picked.id, { save: true, severe: false });
+                    });
+                    grid.appendChild(node);
+                });
+
+                // If a pick for this specific pack was already made (same packCount), restore UI as if clicked
+                const picksObj = getPicks(d, p);
+                const arr = (picksObj.rounds && picksObj.rounds[String(r)]) || [];
+                const existing = arr.find(x => x && typeof x === 'object' && x.packCount === packIds.length);
+                if (existing && existing.cardId) {
+                    applyPickUI(existing.cardId, { save: false, severe: true });
+                }
+            }
+
+            renderPackGrid();
+
+            if (isStart) $('#packTitle').textContent = 'Your New Pack';
+            else $('#packTitle').textContent = 'Incoming Pack';
+        }
+
+        function handleEmptyAfterPick(pl, p, r, dir, alg, R, d, onUndo, severe = false) {
+            $('#packGrid').innerHTML = '';
+            $('#packPanel').style.display = '';
+            if (r < R) {
+                const nextDir = -dir;
+                const nextRound = r + 1;
+
+                // Load pre-generated pack for the next round, fallback to building if missing
+                const pp = getPrePacks(d, p);
+                let nextPack = pp && pp[String(nextRound)];
+                if (!nextPack) {
+                    nextPack = buildPack(alg) || [];
+                }
+
+                const link = buildLink({ d, p, pl, r: nextRound, dir: nextDir, alg, R, start: true, pack: nextPack, pp });
+                const prefix = `Round ${nextRound} start:`;
+                setNextLink(link, 'Start your next pack', 'This round is finished. Use this link to generate your next pack.', onUndo, prefix, severe);
+            } else {
+                $('#postPick').style.display = 'none';
+            }
+        }
+
+        // Router
+        const params = qs();
+        function start() {
+            if (!params.d) {
+                setupHost();
+            } else {
+                $('#playerScreen').style.display = '';
+                runPlayerFlow(params);
+            }
+        }
+        start();
+    </script>
+</body>
+
+</html>

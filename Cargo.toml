@@ -1,0 +1,10 @@
+[package]
+name = "garbage-ai-draft"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.46", features = ["derive"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.143"
+toml = "0.9.5"

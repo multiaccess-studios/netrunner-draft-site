@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Netrunner Runner Draft</title>
+    <style>
+        :root {
+            --bg: #0f1220;
+            --panel: #171b2e;
+            --panel-2: #1d2240;
+            --text: #e9ecff;
+            --muted: #9aa3c7;
+            --accent: #6f9bff;
+            --good: #5cd37c;
+            --warn: #ffcc66;
+            --danger: #ff6b6b;
+            --border: #2a315a;
+            --accent-strong: #9cb7ff;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial;
+            font-size: 14px;
+        }
+
+        a {
+            color: var(--accent);
+            word-break: break-all;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px;
+            margin: 8px 0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin: 0 0 6px 0;
+        }
+
+        h1 {
+            font-size: 20px;
+        }
+
+        h2 {
+            font-size: 16px;
+        }
+
+        h3 {
+            font-size: 14px;
+        }
+
+        .row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .row>* {
+            margin: 3px 0;
+        }
+
+        input[type=text] {
+            background: var(--panel-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 8px;
+            min-width: 200px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input[type=number],
+        select {
+            background: var(--panel-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        button {
+            background: var(--accent);
+            color: #0b1027;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button.secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        button.danger-btn {
+            background: var(--danger);
+            color: #0b1027;
+            border: none;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--border);
+            background: var(--panel-2);
+            padding: 3px 6px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        }
+
+        .card {
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform .08s ease, box-shadow .08s ease, border-color .2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Keep pack card images large as requested */
+        .card img {
+            width: 100%;
+            aspect-ratio: 2.5/3.5;
+            object-fit: cover;
+            background: #0b0f22;
+            display: block;
+        }
+
+        .card .meta {
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* Highlight for the picked card */
+        .card.picked {
+            outline: 3px solid var(--accent-strong);
+            box-shadow: 0 0 0 3px rgba(156, 183, 255, 0.25) inset, 0 8px 22px rgba(111, 155, 255, 0.35);
+            border-color: var(--accent-strong);
+        }
+
+        .copy-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .copy-input {
+            background: var(--panel-2);
+            color: var(--text);
+            border: 2px solid var(--accent);
+            padding: 8px 10px;
+            border-radius: 8px;
+            min-width: 260px;
+            flex: 1 1 480px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+        }
+
+        .ok {
+            color: var(--good);
+        }
+
+        .warn {
+            color: var(--warn);
+        }
+
+        .danger {
+            color: var(--danger);
+        }
+
+        .hr {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 0;
+        }
+
+        .small {
+            font-size: 12px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .inset {
+            background: #0d1127;
+            border: 1px solid #242b55;
+            border-radius: 8px;
+            padding: 8px;
+        }
+
+        .your-seat {
+            background: #22335b;
+            color: #e9efff;
+            border-radius: 6px;
+            padding: 1px 6px;
+        }
+
+        .important {
+            border: 2px solid var(--accent-strong);
+            background: linear-gradient(180deg, rgba(111, 155, 255, 0.12), rgba(111, 155, 255, 0.06));
+            box-shadow: 0 6px 18px rgba(111, 155, 255, 0.2);
+        }
+
+        .sticky {
+            position: sticky;
+            top: 8px;
+            z-index: 40;
+        }
+
+        #postPick {
+            margin-top: 6px;
+        }
+
+        #nextActionTitle {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        #seatInfo .pill {
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="hostScreen" class="panel" style="display:none;">
+            <h1>Start a Draft</h1>
+            <div class="row">
+                <div>
+                    <label for="algoSel" class="muted small">Pack algorithm</label><br />
+                    <select id="algoSel"></select>
+                </div>
+                <div>
+                    <label for="roundsInput" class="muted small">Rounds</label><br />
+                    <input id="roundsInput" type="number" min="1" max="12" value="3" />
+                </div>
+            </div>
+            <div class="hr"></div>
+            <h3>Players</h3>
+            <div class="row">
+                <input id="playerNameInput" type="text" placeholder="Add player name" />
+                <button id="addPlayerBtn">Add</button>
+                <button id="shuffleBtn" class="secondary">Shuffle</button>
+            </div>
+            <div id="playersList" class="list" style="margin-top: 4px;"></div>
+            <div class="hr"></div>
+            <button id="generateBtn">Generate Draft & Links</button>
+            <div id="linksOut" class="panel" style="display:none; margin-top: 8px;">
+                <h2>Share these links</h2>
+                <p class="muted small">Send each link to the corresponding player. The order below is the seating order
+                    for round 1.</p>
+                <div id="linksList" class="list"></div>
+                <div class="hr"></div>
+                <div class="small">
+                    <div>Draft ID: <span id="draftIdLbl" class="mono"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="playerScreen" style="display:none;">
+            <div class="panel" id="seatPanel">
+                <div class="row" style="justify-content: space-between;">
+                    <h1>Draft</h1>
+                    <div class="row">
+                        <div class="pill">Draft ID: <span id="draftId"></span></div>
+                        <div class="pill">Round <span id="roundNum"></span>/<span id="roundTotal"></span></div>
+                        <div class="pill">Direction: <span id="directionLbl"></span></div>
+                    </div>
+                </div>
+                <div id="seatInfo" class="small muted" style="margin-top: 4px;"></div>
+            </div>
+
+
+            <div id="packPanel" class="panel" style="display:none;">
+                <div class="row" style="align-items: baseline; justify-content: space-between;">
+                    <h2 id="packTitle">Your Pack</h2>
+                    <span class="muted small" id="packHint"></span>
+                </div>
+
+                <!-- Prominent sticky link box (hidden until a pick happens) -->
+                <div id="postPick" style="display:none; margin-top: 6px;">
+                    <div id="nextLinkBox" class="panel important sticky">
+                        <h3 id="nextActionTitle">Send this link to</h3>
+                        <div class="copy-row">
+                            <input id="nextLinkInput" class="copy-input mono" readonly />
+                            <button id="copyNextBtn">Copy</button>
+                            <button id="copyUrlBtn" class="secondary">Copy URL</button>
+                            <button id="undoBtn" class="secondary">Undo pick</button>
+                        </div>
+                        <div id="nextLinkNote" class="small" style="margin-top: 2px;"></div>
+                    </div>
+                </div>
+
+                <div id="packGrid" class="grid" style="margin-top: 6px;"></div>
+            </div>
+
+            <div id="finalPanel" class="panel">
+                <h2>Your Drafted Cards</h2>
+                <div id="resultsList" class="inset mono" style="white-space: pre-line;"></div>
+                <p class="muted small" style="margin-top: 4px;">Share or save this list as needed.</p>
+            </div>
+
+            <div id="errorPanel" class="panel" style="display:none;">
+                <h2 class="danger">Something went wrong</h2>
+                <div id="errorMsg" class="small"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /*
+        Configuration
+        - Edit Config.cards to change card pool (name, image, props: {color, type, rarity, ...}).
+        - Edit Config.algorithms to define pack structures and rules.
+        - Optionally define startingCards on an algorithm: [{ id: 'card_id', count: 2 }, ...]
+          When present, each player receives these cards once at draft start in addition to packs.
+        Pack slot constraints:
+          include supports:
+            - exact value: { rarity: 'Common' }
+            - anyOf: { color: { anyOf: ['Red','Blue'] } }
+            - randomOf: { color: { randomOf: ['Red','Blue','Green'] } }
+        Global rules examples:
+          { kind: 'atLeast', property: 'color', value: 'Red', count: 2 }
+          { kind: 'atMost',  property: 'color', value: 'Blue', count: 4 }
+        */
+
+        const Config = {
+            defaultRounds: 4,
+            defaultAlgorithm: 'NineCardsOneRare',
+            packBuildMaxAttempts: 300,
+            allowDuplicates: false, // per-pack duplicate names allowed
+            cards: JSON.parse(`[{"id":"abaasy","name":"Abaasy","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33070.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"afterimage","name":"Afterimage","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26079.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"airbladex_jsrf_ed","name":"AirbladeX (JSRF Ed.)","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34022.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"alarm_clock","name":"Alarm Clock","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34078.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"always_have_a_backup_plan","name":"Always Have a Backup Plan","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26011.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"amanuensis","name":"Amanuensis","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34069.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"amelia_earhart","name":"Amelia Earhart","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34083.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"aniccam","name":"Aniccam","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26084.webp","props":{"faction":"shaper","rarity":"rare","type":"hardware"}},{"id":"arissana_rocha_nahu_street_artist","name":"Arissana Rocha Nahu: Street Artist","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34020.webp","props":{"faction":"shaper","rarity":"common","type":"runner_identity"}},{"id":"arruaceiras_crew","name":"Arruaceiras Crew","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34073.webp","props":{"faction":"anarch","rarity":"rare","type":"resource"}},{"id":"ashen_epilogue","name":"Ashen Epilogue","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34094.webp","props":{"faction":"neutral_runner","rarity":"common","type":"event"}},{"id":"asmund_pudlat","name":"Asmund Pudlat","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33082.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"audrey_v2","name":"Audrey v2","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34004.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"avgustina_ivanovskaya","name":"Avgustina Ivanovskaya","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33008.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"az_mccaffrey_mechanical_prodigy","name":"Az McCaffrey: Mechanical Prodigy","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26010.webp","props":{"faction":"criminal","rarity":"common","type":"runner_identity"}},{"id":"azimat","name":"Azimat","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35029.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"backstitching","name":"Backstitching","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33019.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"bahia_bands","name":"Bahia Bands","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34030.webp","props":{"faction":"neutral_runner","rarity":"common","type":"event"}},{"id":"baklan_bochkin","name":"\\"Baklan\\" Bochkin","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26017.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"banner","name":"Banner","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34005.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"barry_baz_wong_tri_maf_veteran","name":"Barry \\"Baz\\" Wong: Tri-Maf Veteran","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35012.webp","props":{"faction":"criminal","rarity":"common","type":"runner_identity"}},{"id":"basilar_synthgland_2kvj","name":"Basilar Synthgland 2KVJ","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33086.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"beatriz_friere_gonzalez","name":"Beatriz Friere Gonzalez","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34028.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"begemot","name":"Begemot","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33007.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"bling","name":"Bling","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35006.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"blueberry_diesel","name":"Blueberry! Diesel","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26012.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"boi_tata","name":"Boi-tata","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34071.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"boomerang","name":"Boomerang","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26075.webp","props":{"faction":"criminal","rarity":"rare","type":"hardware"}},{"id":"botulus","name":"Botulus","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30004.webp","props":{"faction":"anarch","rarity":"rare","type":"program"}},{"id":"bravado","name":"Bravado","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26074.webp","props":{"faction":"criminal","rarity":"rare","type":"event"}},{"id":"buffer_drive","name":"Buffer Drive","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26093.webp","props":{"faction":"neutral_runner","rarity":"common","type":"hardware"}},{"id":"bukhgalter","name":"Bukhgalter","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26016.webp","props":{"faction":"criminal","rarity":"rare","type":"program"}},{"id":"burner","name":"Burner","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34085.webp","props":{"faction":"shaper","rarity":"rare","type":"event"}},{"id":"buzzsaw","name":"Buzzsaw","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30005.webp","props":{"faction":"anarch","rarity":"rare","type":"program"}},{"id":"cacophony","name":"Cacophony","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35010.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"captain_padma_isbister_intrepid_explorer","name":"Captain Padma Isbister: Intrepid Explorer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33021.webp","props":{"faction":"shaper","rarity":"common","type":"runner_identity"}},{"id":"capybara","name":"Capybara","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34013.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"carmen","name":"Carmen","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30015.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"carnivore","name":"Carnivore","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30003.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"carpe_diem","name":"Carpe Diem","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33012.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"cataloguer","name":"Cataloguer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34088.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"cats_cradle","name":"Cat's Cradle","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33016.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"cezve","name":"Cezve","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33017.webp","props":{"faction":"criminal","rarity":"rare","type":"program"}},{"id":"chastushka","name":"Chastushka","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33002.webp","props":{"faction":"anarch","rarity":"rare","type":"event"}},{"id":"chisel","name":"Chisel","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26003.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"chromatophores","name":"Chromatophores","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35030.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"chrysopoeian_skimming","name":"Chrysopoeian Skimming","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34011.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"clean_getaway","name":"Clean Getaway","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35014.webp","props":{"faction":"criminal","rarity":"rare","type":"event"}},{"id":"cleaver","name":"Cleaver","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30006.webp","props":{"faction":"anarch","rarity":"rare","type":"program"}},{"id":"climactic_showdown","name":"Climactic Showdown","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26006.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"coalescence","name":"Coalescence","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34089.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"concerto","name":"Concerto","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33075.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"conduit","name":"Conduit","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30024.webp","props":{"faction":"shaper","rarity":"rare","type":"program"}},{"id":"cookbook","name":"Cookbook","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30009.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"cordyceps","name":"Cordyceps","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26086.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"creative_commission","name":"Creative Commission","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30020.webp","props":{"faction":"shaper","rarity":"rare","type":"event"}},{"id":"cupellation","name":"Cupellation","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34080.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"curupira","name":"Curupira","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34015.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"cybertrooper_talut","name":"Cybertrooper Talut","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26091.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"daeg_first_net_cat","name":"Daeg, First Net-Cat","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33028.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"daily_casts","name":"Daily Casts","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26094.webp","props":{"faction":"neutral_runner","rarity":"rare","type":"resource"}},{"id":"debbie_downtown_moreira","name":"Debbie \\"Downtown\\" Moreira","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34019.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"deep_dive","name":"Deep Dive","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33022.webp","props":{"faction":"shaper","rarity":"rare","type":"event"}},{"id":"demolisher","name":"Demolisher","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26002.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"detente","name":"Detente","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35018.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"devadatta_drone","name":"Devadatta Drone","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35031.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"devil_charm","name":"Devil Charm","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26068.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"dewi_subrotoputri_pedagogical_dhalang","name":"Dewi Subrotoputri: Pedagogical Dhalang","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35023.webp","props":{"faction":"shaper","rarity":"common","type":"runner_identity"}},{"id":"docklands_pass","name":"Docklands Pass","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30013.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"dr_nuka_vrolyck","name":"Dr. Nuka Vrolyck","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33092.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"dreamnet","name":"DreamNet","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26095.webp","props":{"faction":"neutral_runner","rarity":"rare","type":"resource"}},{"id":"dzmz_optimizer","name":"DZMZ Optimizer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30022.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"echelon","name":"Echelon","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30025.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"endurance","name":"Endurance","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33025.webp","props":{"faction":"shaper","rarity":"rare","type":"hardware"}},{"id":"environmental_testing","name":"Environmental Testing","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33029.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"eru_ayase_pessoa","name":"Eru Ayase-Pessoa","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34007.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"esa_afontov_eco_insurrectionist","name":"Esa Afontov: Eco-Insurrectionist","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33001.webp","props":{"faction":"anarch","rarity":"common","type":"runner_identity"}},{"id":"euler","name":"Euler","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26087.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"eye_for_an_eye","name":"Eye for an Eye","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34067.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"fencer_fueno","name":"Fencer Fueno","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26007.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"fermenter","name":"Fermenter","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30007.webp","props":{"faction":"anarch","rarity":"rare","type":"program"}},{"id":"finality","name":"Finality","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33066.webp","props":{"faction":"anarch","rarity":"rare","type":"event"}},{"id":"flip_switch","name":"Flip Switch","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26013.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"flux_capacitor","name":"Flux Capacitor","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33087.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"fransofia_ward","name":"Fransofia Ward","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35021.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"friend_of_a_friend","name":"Friend of a Friend","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34074.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"gachapon","name":"Gachapon","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26069.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"gamedragon_pro","name":"GAMEDRAGON Pro","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35027.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"gauss","name":"Gauss","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26024.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"ghosttongue","name":"Ghosttongue","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33005.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"gourmand","name":"Gourmand","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35007.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"hannah_wheels_pilintra","name":"Hannah \\"Wheels\\" Pilintra","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34008.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"hantu","name":"Hantu","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35008.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"harmony_ar_therapy","name":"Harmony AR Therapy","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26083.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"heliamphora","name":"Heliamphora","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34072.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"hermes","name":"Hermes","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34014.webp","props":{"faction":"criminal","rarity":"rare","type":"hardware"}},{"id":"hippocampic_mechanocytes","name":"Hippocampic Mechanocytes","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33085.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"hoshiko_shiro_untold_protagonist","name":"Hoshiko Shiro: Untold Protagonist","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26066.webp","props":{"faction":"anarch","rarity":"common","type":"runner_identity"}},{"id":"hush","name":"Hush","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33071.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"hyperbaric","name":"Hyperbaric","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33026.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"illumination","name":"Illumination","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35025.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"in_the_groove","name":"In the Groove","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26020.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"info_bounty","name":"Info Bounty","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33083.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"into_the_depths","name":"Into the Depths","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33023.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"isolation","name":"Isolation","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26001.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"jailbreak","name":"Jailbreak","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30028.webp","props":{"faction":"neutral_runner","rarity":"common","type":"event"}},{"id":"joy_ride","name":"Joy Ride","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34021.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"juli_moreira_lee","name":"Juli Moreira Lee","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34084.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"k2cp_turbine","name":"K2CP Turbine","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33090.webp","props":{"faction":"shaper","rarity":"rare","type":"program"}},{"id":"katorga_breakout","name":"Katorga Breakout","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33067.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"keiko","name":"Keiko","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26070.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"khusyuk","name":"Khusyuk","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26021.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"knickknack_obrian","name":"\\"Knickknack\\" O'Brian","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35033.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"lago_paranoa_shelter","name":"Lago Paranoa Shelter","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34009.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"laser_pointer","name":"Laser Pointer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34016.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"lat_ethical_freelancer","name":"Lat: Ethical Freelancer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26019.webp","props":{"faction":"shaper","rarity":"common","type":"runner_identity"}},{"id":"leech","name":"Leech","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30008.webp","props":{"faction":"anarch","rarity":"rare","type":"program"}},{"id":"lie_low","name":"Lie Low","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35015.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"light_the_fire","name":"Light the Fire!","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33009.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"lilypad","name":"LilyPAD","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34023.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"living_mural","name":"Living Mural","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34024.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"lobisomem","name":"Lobisomem","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34090.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"lucky_charm","name":"Lucky Charm","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26014.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"madani","name":"Madani","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35028.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"magdalene_keino_chemutai_cryptarchitect","name":"Magdalene Keino-Chemutai: Cryptarchitect","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35024.webp","props":{"faction":"shaper","rarity":"common","type":"runner_identity"}},{"id":"maglectric_rapid_748_mod","name":"Maglectric Rapid (748 Mod)","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35019.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"maintenance_access","name":"Maintenance Access","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35016.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"makler","name":"Makler","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26080.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"malandragem","name":"Malandragem","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34081.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"mantle","name":"Mantle","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26088.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"manuel_lattes_de_moura","name":"Manuel Lattes de Moura","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34075.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"marjanah","name":"Marjanah","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30016.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"marrow","name":"Marrow","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33006.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"masterwork_v37","name":"Masterwork (v37)","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26015.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"mayfly","name":"Mayfly","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30032.webp","props":{"faction":"neutral_runner","rarity":"common","type":"program"}},{"id":"meeting_of_minds","name":"Meeting of Minds","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34076.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"mercury_chrome_libertador","name":"Mercury: Chrome Libertador","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34010.webp","props":{"faction":"criminal","rarity":"common","type":"runner_identity"}},{"id":"monkeywrench","name":"Monkeywrench","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34006.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"moshing","name":"Moshing","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26067.webp","props":{"faction":"anarch","rarity":"rare","type":"event"}},{"id":"mu_safecracker","name":"Mu Safecracker","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26076.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"muse","name":"Muse","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34091.webp","props":{"faction":"shaper","rarity":"rare","type":"program"}},{"id":"muslihat_multifarious_marketeer","name":"MuslihaT: Multifarious Marketeer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35013.webp","props":{"faction":"criminal","rarity":"common","type":"runner_identity"}},{"id":"mutual_favor","name":"Mutual Favor","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30011.webp","props":{"faction":"criminal","rarity":"rare","type":"event"}},{"id":"mystic_maemi","name":"Mystic Maemi","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26072.webp","props":{"faction":"anarch","rarity":"rare","type":"resource"}},{"id":"nanuq","name":"Nanuq","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33088.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"nga","name":"Nga","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33072.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"no_free_lunch","name":"No Free Lunch","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33020.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"nova_initiumia_catalyst_impetus","name":"Nova Initiumia: Catalyst & Impetus","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33093.webp","props":{"faction":"neutral_runner","rarity":"common","type":"runner_identity"}},{"id":"num","name":"Num","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33073.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"nyusha_sable_sintashta_symphonic_prodigy","name":"Nyusha \\"Sable\\" Sintashta: Symphonic Prodigy","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33011.webp","props":{"faction":"criminal","rarity":"common","type":"runner_identity"}},{"id":"odore","name":"Odore","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26071.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"open_market","name":"Open Market","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35022.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"orca","name":"Orca","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33089.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"overclock","name":"Overclock","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30029.webp","props":{"faction":"neutral_runner","rarity":"common","type":"event"}},{"id":"paladin_poemu","name":"Paladin Poemu","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26073.webp","props":{"faction":"anarch","rarity":"rare","type":"resource"}},{"id":"pan_weave","name":"PAN-Weave","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33014.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"pantograph","name":"Pantograph","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30023.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"paules_cafe","name":"Paule's Cafe","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26092.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"pelangi","name":"Pelangi","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26025.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"pennyshaver","name":"Pennyshaver","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30014.webp","props":{"faction":"criminal","rarity":"rare","type":"hardware"}},{"id":"penrose","name":"Penrose","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26089.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"penumbral_toolkit","name":"Penumbral Toolkit","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26081.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"physarum_entangler","name":"Physarum Entangler","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34082.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"pichacao","name":"Pichacao","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34025.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"pinhole_threading","name":"Pinhole Threading","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33013.webp","props":{"faction":"criminal","rarity":"rare","type":"event"}},{"id":"poison_vial","name":"Poison Vial","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33077.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"pressure_spike","name":"Pressure Spike","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34092.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"pretty_mary_da_silva","name":"\\"Pretty\\" Mary da Silva","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34093.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"principia","name":"Principia","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35032.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"privileged_access","name":"Privileged Access","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34068.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"prognostic_q_loop","name":"Prognostic Q-Loop","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26077.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"propeller","name":"Propeller","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33027.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"raindrops_cut_stone","name":"Raindrops Cut Stone","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33068.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"red_team","name":"Red Team","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30018.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"rejig","name":"Rejig","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26029.webp","props":{"faction":"neutral_runner","rarity":"common","type":"event"}},{"id":"rene_loup_arcemont_party_animal","name":"Rene \\"Loup\\" Arcemont: Party Animal","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30001.webp","props":{"faction":"anarch","rarity":"common","type":"runner_identity"}},{"id":"rent_rioters","name":"Rent Rioters","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35011.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"reprise","name":"Reprise","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33076.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"revolver","name":"Revolver","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33018.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"rezeki","name":"Rezeki","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26026.webp","props":{"faction":"shaper","rarity":"rare","type":"program"}},{"id":"rigging_up","name":"Rigging Up","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33024.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"rising_tide","name":"Rising Tide","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35009.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"ritual","name":"Ritual","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35026.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"running_hot","name":"Running Hot","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33003.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"ryo_phoenix_ono_out_of_the_ashes","name":"Ryo \\"Phoenix\\" Ono: Out of the Ashes","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35001.webp","props":{"faction":"anarch","rarity":"common","type":"runner_identity"}},{"id":"s_dobrado","name":"S-Dobrado","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34012.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"saci","name":"Saci","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34017.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"sang_kancil","name":"Sang Kancil","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35020.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"scrounge","name":"Scrounge","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35004.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"sebastiao_souza_pessoa_activist_organizer","name":"Sebastiao Souza Pessoa: Activist Organizer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34066.webp","props":{"faction":"anarch","rarity":"common","type":"runner_identity"}},{"id":"self_modifying_code","name":"Self-modifying Code","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26090.webp","props":{"faction":"shaper","rarity":"rare","type":"program"}},{"id":"shibboleth","name":"Shibboleth","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34018.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"shred","name":"Shred","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35005.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"side_hustle","name":"Side Hustle","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35034.webp","props":{"faction":"neutral_runner","rarity":"common","type":"resource"}},{"id":"simulchip","name":"Simulchip","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26085.webp","props":{"faction":"shaper","rarity":"rare","type":"hardware"}},{"id":"slap_vandal","name":"Slap Vandal","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34026.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"smartware_distributor","name":"Smartware Distributor","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30033.webp","props":{"faction":"neutral_runner","rarity":"common","type":"resource"}},{"id":"solidarity_badge","name":"Solidarity Badge","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34003.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"spark_of_inspiration","name":"Spark of Inspiration","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33084.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"spec_work","name":"Spec Work","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26022.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"spree","name":"Spree","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34086.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"stargate","name":"Stargate","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26004.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"steelskin_scarring","name":"Steelskin Scarring","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33004.webp","props":{"faction":"anarch","rarity":"rare","type":"event"}},{"id":"stoneship_chart_room","name":"Stoneship Chart Room","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33030.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"strike_fund","name":"Strike Fund","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34001.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"supercorridor","name":"Supercorridor","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26023.webp","props":{"faction":"shaper","rarity":"common","type":"hardware"}},{"id":"sure_gamble","name":"Sure Gamble","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30030.webp","props":{"faction":"neutral_runner","rarity":"common","type":"event"}},{"id":"swift","name":"Swift","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26078.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"t400_memory_diamond","name":"T400 Memory Diamond","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30031.webp","props":{"faction":"neutral_runner","rarity":"common","type":"hardware"}},{"id":"tao_salonga_telepresence_magician","name":"Tao Salonga: Telepresence Magician","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30019.webp","props":{"faction":"shaper","rarity":"common","type":"runner_identity"}},{"id":"telework_contract","name":"Telework Contract","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30027.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"the_artist","name":"The Artist","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26027.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"the_back","name":"The Back","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26082.webp","props":{"faction":"criminal","rarity":"common","type":"resource"}},{"id":"the_catalyst_convention_breaker","name":"The Catalyst: Convention Breaker","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30076.webp","props":{"faction":"neutral_runner","rarity":"common","type":"runner_identity"}},{"id":"the_class_act","name":"The Class Act","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26018.webp","props":{"faction":"criminal","rarity":"rare","type":"resource"}},{"id":"the_nihilist","name":"The Nihilist","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26008.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"the_price","name":"The Price","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34002.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"the_twinning","name":"The Twinning","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33010.webp","props":{"faction":"anarch","rarity":"rare","type":"resource"}},{"id":"the_wizards_chest","name":"The Wizard's Chest","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34070.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"time_bomb","name":"Time Bomb","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33069.webp","props":{"faction":"anarch","rarity":"common","type":"hardware"}},{"id":"topan_ormas_leader","name":"Topan: Ormas Leader","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35002.webp","props":{"faction":"anarch","rarity":"common","type":"runner_identity"}},{"id":"tranquilizer","name":"Tranquilizer","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30017.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"transfer_of_wealth","name":"Transfer of Wealth","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/35017.webp","props":{"faction":"criminal","rarity":"rare","type":"event"}},{"id":"tread_lightly","name":"Tread Lightly","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30012.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"tremolo","name":"Tremolo","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33080.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"trick_shot","name":"Trick Shot","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34087.webp","props":{"faction":"shaper","rarity":"rare","type":"event"}},{"id":"trickster_taka","name":"Trickster Taka","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26009.webp","props":{"faction":"anarch","rarity":"common","type":"resource"}},{"id":"tsakhia_bankhar_gantulga","name":"Tsakhia Bankhar Gantulga","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33074.webp","props":{"faction":"anarch","rarity":"rare","type":"resource"}},{"id":"tunnel_vision","name":"Tunnel Vision","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33081.webp","props":{"faction":"criminal","rarity":"common","type":"program"}},{"id":"umbrella","name":"Umbrella","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34027.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"unity","name":"Unity","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30026.webp","props":{"faction":"shaper","rarity":"common","type":"program"}},{"id":"urban_art_vernissage","name":"Urban Art Vernissage","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34029.webp","props":{"faction":"shaper","rarity":"common","type":"resource"}},{"id":"utae","name":"Utae","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26005.webp","props":{"faction":"anarch","rarity":"common","type":"program"}},{"id":"valentina_ferreira_carvalho","name":"Valentina Ferreira Carvalho","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34095.webp","props":{"faction":"neutral_runner","rarity":"common","type":"resource"}},{"id":"verbal_plasticity","name":"Verbal Plasticity","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30034.webp","props":{"faction":"neutral_runner","rarity":"common","type":"resource"}},{"id":"virtuoso","name":"Virtuoso","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33015.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"vrcation","name":"VRcation","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30021.webp","props":{"faction":"shaper","rarity":"common","type":"event"}},{"id":"wake_implant_v2a_jrj","name":"WAKE Implant v2A-JRJ","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33078.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}},{"id":"whistleblower","name":"Whistleblower","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/26030.webp","props":{"faction":"neutral_runner","rarity":"common","type":"resource"}},{"id":"wildcat_strike","name":"Wildcat Strike","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30002.webp","props":{"faction":"anarch","rarity":"common","type":"event"}},{"id":"window_of_opportunity","name":"Window of Opportunity","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/34077.webp","props":{"faction":"criminal","rarity":"common","type":"event"}},{"id":"world_tree","name":"World Tree","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33091.webp","props":{"faction":"shaper","rarity":"rare","type":"program"}},{"id":"zahya_sadeghi_versatile_smuggler","name":"Zahya Sadeghi: Versatile Smuggler","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/30010.webp","props":{"faction":"criminal","rarity":"common","type":"runner_identity"}},{"id":"zenit_chip_jz_2mj","name":"Zenit Chip JZ-2MJ","image":"https://nro-public.s3.nl-ams.scw.cloud/nro/card-printings/v2/webp/english/card/33079.webp","props":{"faction":"criminal","rarity":"common","type":"hardware"}}]`),
+            algorithms: {
+                NineCardsOneRare: {
+                    description: '9 card pack: 1 good on trash or busto',
+                    slots: [
+                        { count: 1, include: { rarity: 'rare' } },
+                        { count: 2, include: { rarity: 'common', faction: 'anarch', } },
+                        { count: 2, include: { rarity: 'common', faction: 'shaper', } },
+                        { count: 2, include: { rarity: 'common', faction: 'criminal', } },
+                        { count: 2, include: { rarity: 'common' } },
+                    ],
+                    rules: [
+                        { kind: 'atLeast', property: 'type', value: 'event', count: 2 },
+                        { kind: 'atLeast', property: 'type', value: 'program', count: 2 },
+                        { kind: 'atLeast', property: 'type', value: 'resource', count: 2 },
+                        { kind: 'atLeast', property: 'type', value: 'hardware', count: 1 },
+                    ],
+                    startingCards: [
+                        { id: 'jailbreak', count: 1 },
+                        { id: 'overclock', count: 1 },
+                        { id: 'sure_gamble', count: 1 },
+                        { id: 't400_memory_diamond', count: 1 },
+                        { id: 'mayfly', count: 1 },
+                        { id: 'smartware_distributor', count: 1 },
+                        { id: 'verbal_plasticity', count: 1 },
+                    ]
+                },
+
+            }
+        };
+
+        const CARD_BY_ID = Object.fromEntries(Config.cards.map(c => [c.id, c]));
+
+        // Utilities
+        const $ = sel => document.querySelector(sel);
+        const el = (tag, cls, txt) => { const x = document.createElement('tag' === tag ? 'div' : tag); if (cls) x.className = cls; if (txt != null) x.textContent = txt; return x; };
+        function randInt(n) { return Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296 * n); }
+        function shuffleInPlace(a) { for (let i = a.length - 1; i > 0; i--) { const j = randInt(i + 1);[a[i], a[j]] = [a[j], a[i]]; } return a; }
+        function uid(len = 8) { const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < len; i++) s += alphabet[randInt(alphabet.length)]; return s; }
+        function enc(obj) { return encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(obj))))); }
+        function dec(str) { return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(str))))); }
+        function qs() { const out = {}; const q = new URLSearchParams(location.search); for (const [k, v] of q.entries()) out[k] = v; return out; }
+        function setError(msg) {
+            $('#errorMsg').textContent = msg;
+            $('#errorPanel').style.display = '';
+            $('#packPanel').style.display = 'none';
+        }
+
+        // Pack building
+        function cardMatchesInclude(card, includeObj) {
+            if (!includeObj) return true;
+            for (const [prop, expect] of Object.entries(includeObj)) {
+                const v = card.props[prop];
+                if (typeof expect === 'string' || typeof expect === 'number' || typeof expect === 'boolean') {
+                    if (v !== expect) return false;
+                } else if (expect && typeof expect === 'object') {
+                    if (Array.isArray(expect.anyOf)) {
+                        if (!expect.anyOf.includes(v)) return false;
+                    } else if (Array.isArray(expect.not)) {
+                        if (expect.not.includes(v)) return false;
+                    } else if (expect.randomOf) {
+                        if (!expect.randomChoice) {
+                            expect.randomChoice = expect.randomOf[randInt(expect.randomOf.length)];
+                        }
+                        if (v !== expect.randomChoice) return false;
+                    }
+                }
+            }
+            return true;
+        }
+        function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+        function resolveSlotIncludeRandoms(include) {
+            const resolved = deepClone(include || {});
+            for (const [k, v] of Object.entries(resolved)) {
+                if (v && typeof v === 'object' && v.randomOf) {
+                    const choice = v.randomOf[randInt(v.randomOf.length)];
+                    resolved[k] = choice;
+                }
+            }
+            return resolved;
+        }
+        function buildPack(algorithmName) {
+            const algo = Config.algorithms[algorithmName] || Config.algorithms[Config.defaultAlgorithm];
+            if (!algo) throw new Error('Algorithm not found.');
+            const cards = Config.cards;
+
+            for (let attempt = 0; attempt < Config.packBuildMaxAttempts; attempt++) {
+                const chosen = [];
+                for (const slot of algo.slots) {
+                    const includeResolved = resolveSlotIncludeRandoms(slot.include || {});
+                    for (let i = 0; i < slot.count; i++) {
+                        const pool = cards.filter(c => cardMatchesInclude(c, includeResolved));
+                        if (!pool.length) { chosen.length = 0; break; }
+                        let pick;
+                        if (Config.allowDuplicates) {
+                            pick = pool[randInt(pool.length)];
+                        } else {
+                            const avail = pool.filter(x => !chosen.some(y => y.id === x.id));
+                            if (!avail.length) { chosen.length = 0; break; }
+                            pick = avail[randInt(avail.length)];
+                        }
+                        chosen.push(pick);
+                    }
+                    if (!chosen.length && slot.count) break;
+                }
+                if (!chosen.length) continue;
+
+                const ok = (algo.rules || []).every(rule => {
+                    const count = chosen.reduce((acc, c) => acc + (c.props[rule.property] === rule.value ? 1 : 0), 0);
+                    if (rule.kind === 'atLeast') return count >= rule.count;
+                    if (rule.kind === 'atMost') return count <= rule.count;
+                    return true;
+                });
+                if (ok) {
+                    return chosen.map(c => c.id);
+                }
+            }
+            return null;
+        }
+
+        // Compute total pack size for an algorithm
+        function computePackSize(algorithmName) {
+            const algo = Config.algorithms[algorithmName] || {};
+            const slots = Array.isArray(algo.slots) ? algo.slots : [];
+            return slots.reduce((sum, s) => sum + (s && s.count ? s.count : 0), 0);
+        }
+
+        // Local Storage
+        function lsKey(draftId, seatIndex) { return `draft_${draftId}_p${seatIndex}_picks`; }
+        function packsKey(draftId, seatIndex) { return `draft_${draftId}_p${seatIndex}_prepacks`; }
+        function startingAppliedKey(draftId, seatIndex) { return `draft_${draftId}_p${seatIndex}_starting_applied`; }
+        function getPicks(draftId, seatIndex) {
+            let obj = {};
+            try { obj = JSON.parse(localStorage.getItem(lsKey(draftId, seatIndex)) || '{}') || {}; } catch { }
+            if (!obj.rounds) obj.rounds = {};
+            return obj;
+        }
+        function savePicks(draftId, seatIndex, obj) {
+            localStorage.setItem(lsKey(draftId, seatIndex), JSON.stringify(obj));
+        }
+        function getPrePacks(draftId, seatIndex) {
+            try { return JSON.parse(localStorage.getItem(packsKey(draftId, seatIndex)) || 'null'); } catch { return null; }
+        }
+        function savePrePacks(draftId, seatIndex, obj) {
+            localStorage.setItem(packsKey(draftId, seatIndex), JSON.stringify(obj));
+        }
+        function addPick(draftId, seatIndex, round, cardId, packCount) {
+            const p = getPicks(draftId, seatIndex);
+            const r = String(round);
+            if (!p.rounds[r]) p.rounds[r] = [];
+            const arr = p.rounds[r];
+
+            // Overwrite existing pick for this packCount, else append a new record
+            const idx = arr.findIndex(x => typeof x === 'object' && x && x.packCount === packCount);
+            if (idx !== -1) {
+                arr[idx].cardId = cardId;
+            } else {
+                arr.push({ cardId, packCount });
+            }
+            p.rounds[r] = arr;
+            savePicks(draftId, seatIndex, p);
+        }
+        function undoPick(draftId, seatIndex, round, expectedCardId, packCount) {
+            const p = getPicks(draftId, seatIndex);
+            const r = String(round);
+            const arr = p.rounds[r] || [];
+            let idx = -1;
+
+            if (typeof packCount === 'number') {
+                idx = arr.findIndex(x => typeof x === 'object' && x && x.packCount === packCount);
+            }
+
+            if (idx !== -1) {
+                arr.splice(idx, 1);
+            } else {
+                // Backward compatibility with legacy string entries
+                const toId = v => (typeof v === 'string' ? v : v && v.cardId);
+                if (arr.length && toId(arr[arr.length - 1]) === expectedCardId) {
+                    arr.pop();
+                } else {
+                    const lastIdx = arr.map(toId).lastIndexOf(expectedCardId);
+                    if (lastIdx !== -1) arr.splice(lastIdx, 1);
+                }
+            }
+
+            p.rounds[r] = arr;
+            savePicks(draftId, seatIndex, p);
+        }
+
+        // URL builders
+        function buildLink({ d, p, pl, r, dir, alg, R, start, pack, pp }) {
+            const q = new URLSearchParams();
+            q.set('d', d);
+            q.set('p', String(p));
+            q.set('pl', enc(pl));
+            q.set('r', String(r));
+            q.set('dir', String(dir));
+            q.set('alg', alg);
+            q.set('R', String(R));
+            if (start) q.set('start', '1');
+            if (pack) q.set('pack', enc(pack));
+            if (pp) q.set('pp', enc(pp));
+            const url = `${location.origin}${location.pathname}?${q.toString()}`;
+            return url;
+        }
+        function nextSeatIndex(p, dir, n) {
+            return ((p + (dir | 0)) % n + n) % n;
+        }
+
+        // Host UI
+        const hostState = { players: [] };
+        function renderPlayers() {
+            const list = $('#playersList');
+            list.innerHTML = '';
+            if (!hostState.players.length) {
+                const i = el('div', 'muted small', 'No players yet. Add names above.');
+                list.appendChild(i);
+                return;
+            }
+            hostState.players.forEach((name, idx) => {
+                const row = el('div', 'row');
+                row.style.justifyContent = 'space-between';
+                const left = el('div', null);
+                left.appendChild(el('span', 'pill', `Seat ${idx + 1}`));
+                left.append(' ');
+                left.appendChild(el('strong', null, name));
+                const right = el('div', null);
+                const up = el('button', 'secondary'); up.textContent = '↑'; up.onclick = () => { if (idx > 0) { [hostState.players[idx - 1], hostState.players[idx]] = [hostState.players[idx], hostState.players[idx - 1]]; renderPlayers(); } };
+                const down = el('button', 'secondary'); down.textContent = '↓'; down.onclick = () => { if (idx < hostState.players.length - 1) { [hostState.players[idx + 1], hostState.players[idx]] = [hostState.players[idx], hostState.players[idx + 1]]; renderPlayers(); } };
+                const del = el('button', 'secondary'); del.textContent = 'Remove'; del.onclick = () => { hostState.players.splice(idx, 1); renderPlayers(); };
+                right.appendChild(up); right.appendChild(down); right.append(' '); right.appendChild(del);
+                row.appendChild(left); row.appendChild(right);
+                list.appendChild(row);
+            });
+        }
+        function setupHost() {
+            const sel = $('#algoSel');
+            sel.innerHTML = '';
+            Object.entries(Config.algorithms).forEach(([name, cfg]) => {
+                const o = document.createElement('option'); o.value = name; o.textContent = `${name} - ${cfg.description || ''}`; sel.appendChild(o);
+            });
+            sel.value = Config.defaultAlgorithm;
+            $('#roundsInput').value = Config.defaultRounds;
+
+            $('#addPlayerBtn').onclick = () => {
+                const v = $('#playerNameInput').value.trim();
+                if (!v) return;
+                hostState.players.push(v);
+                $('#playerNameInput').value = '';
+                renderPlayers();
+            };
+            $('#playerNameInput').onkeydown = (e) => { if (e.key === 'Enter') $('#addPlayerBtn').click(); };
+            $('#shuffleBtn').onclick = () => { shuffleInPlace(hostState.players); renderPlayers(); };
+            $('#generateBtn').onclick = () => {
+                const players = hostState.players.map(x => x.trim()).filter(Boolean);
+                if (players.length < 2) { alert('Please add at least 2 players.'); return; }
+                const rounds = Math.max(1, Math.min(24, parseInt($('#roundsInput').value || '3', 10)));
+                const alg = $('#algoSel').value;
+                const d = uid(8);
+                const pl = players.slice();
+                const R = rounds;
+                const dir = 1;
+
+                // Pre-generate packs for all seats and all rounds
+                const allPrePacksBySeat = []; // array of objects: { "1": packIds[], "2": packIds[], ... }
+                for (let seat = 0; seat < pl.length; seat++) {
+                    const roundsObj = {};
+                    for (let round = 1; round <= R; round++) {
+                        const pack = buildPack(alg);
+                        if (!pack) {
+                            alert('Could not build a pack with the current algorithm and rules. Please adjust configuration.');
+                            return;
+                        }
+                        roundsObj[String(round)] = pack;
+                    }
+                    allPrePacksBySeat[seat] = roundsObj;
+                }
+
+                const links = [];
+                for (let p = 0; p < pl.length; p++) {
+                    const firstPack = allPrePacksBySeat[p]["1"];
+                    const pp = allPrePacksBySeat[p];
+                    const url = buildLink({ d, p, pl, r: 1, dir, alg, R, start: true, pack: firstPack, pp });
+                    links.push({ name: pl[p], url });
+                }
+                $('#linksOut').style.display = '';
+                $('#draftIdLbl').textContent = d;
+                const list = $('#linksList'); list.innerHTML = '';
+                links.forEach((lnk, idx) => {
+                    const it = el('div', 'panel');
+                    const who = el('div', null);
+                    who.appendChild(el('strong', null, `${idx + 1}. ${lnk.name}`));
+                    it.appendChild(who);
+                    const cr = el('div', 'copy-row');
+                    const input = el('input', 'copy-input mono'); input.readOnly = true; input.value = lnk.url; input.onclick = () => input.select();
+                    const btn = el('button', null, 'Copy');
+                    btn.onclick = async () => {
+                        try { await navigator.clipboard.writeText(lnk.url); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1200); }
+                        catch { input.select(); document.execCommand('copy'); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1200); }
+                    };
+                    cr.appendChild(input); cr.appendChild(btn);
+                    it.appendChild(cr);
+                    list.appendChild(it);
+                });
+            };
+            $('#hostScreen').style.display = '';
+        }
+
+        // Player UI
+        function renderSeatInfo(pl, p, r, dir, R) {
+            $('#draftId').textContent = params.d;
+            $('#roundNum').textContent = r;
+            $('#roundTotal').textContent = R;
+            $('#directionLbl').textContent = dir === 1 ? 'Clockwise' : 'Counter-clockwise';
+            const names = pl;
+            const seats = el('div', 'row');
+            names.forEach((name, idx) => {
+                const pill = el('span', 'pill', `${idx + 1}. ${name}`);
+                if (idx === p) { pill.classList.add('your-seat'); }
+                seats.appendChild(pill);
+            });
+            $('#seatInfo').innerHTML = '';
+            $('#seatInfo').appendChild(seats);
+        }
+
+
+        function makeCard(cardObj, clickable = true, onPick = null) {
+            const card = el('div', 'card');
+            card.dataset.cardId = cardObj.id;
+            const img = document.createElement('img'); img.src = cardObj.image; img.alt = cardObj.name;
+            card.appendChild(img);
+            const meta = el('div', 'meta');
+            meta.appendChild(el('div', null, cardObj.name));
+            // No properties displayed for compactness
+            card.appendChild(meta);
+            if (clickable) {
+                card.onclick = () => onPick && onPick(cardObj);
+            }
+            return card;
+        }
+
+        function aggregateCounts(d, p) {
+            const data = getPicks(d, p);
+            const countsByName = {};
+            const toId = v => (typeof v === 'string' ? v : v && v.cardId);
+
+            for (const [round, picks] of Object.entries(data.rounds || {})) {
+                (picks || []).forEach(item => {
+                    const id = toId(item);
+                    if (!id) return;
+                    const c = CARD_BY_ID[id];
+                    const name = c ? c.name : id;
+                    countsByName[name] = (countsByName[name] || 0) + 1;
+                });
+            }
+            const lines = Object.entries(countsByName)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([name, count]) => `${count} ${name}`);
+            return lines;
+        }
+
+        // Prominent link box controls. Accepts optional onUndo callback and copyPrefix text.
+        // Added: severe flag to increase warning severity when restoring from a reload.
+        function setNextLink(link, title, note, onUndo, copyPrefix, severe = false) {
+            $('#nextActionTitle').textContent = title;
+            const input = $('#nextLinkInput'); input.value = link; input.onclick = () => input.select();
+            const btn = $('#copyNextBtn');
+            const btnUrl = $('#copyUrlBtn');
+
+            const prefixText = copyPrefix ? `${copyPrefix} ` : '';
+            btn.onclick = async () => {
+                const text = `${prefixText}${link}`;
+                try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1200); }
+                catch { input.select(); document.execCommand('copy'); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1200); }
+            };
+            btnUrl.onclick = async () => {
+                try { await navigator.clipboard.writeText(link); btnUrl.textContent = 'URL Copied!'; setTimeout(() => btnUrl.textContent = 'Copy URL', 1200); }
+                catch { input.select(); document.execCommand('copy'); btnUrl.textContent = 'URL Copied!'; setTimeout(() => btnUrl.textContent = 'Copy URL', 1200); }
+            };
+
+            const undoBtn = $('#undoBtn');
+            undoBtn.onclick = () => { if (onUndo) onUndo(); };
+            undoBtn.disabled = !onUndo;
+
+            const baseWarn = 'Note: If you undo your pick, this link will change. Do not send a previously copied link.';
+            const strongWarn = 'Important: You already made this pick and reloaded. Undoing now may break the whole draft if links were already shared. Only undo if everyone at the table coordinates and discards any links that depended on this pick.';
+            const icon = severe ? '⚠️' : '⚠';
+            const cls = severe ? 'danger' : 'warn';
+            const warnText = severe ? strongWarn : baseWarn;
+
+            $('#nextLinkNote').innerHTML = `<span class="${cls}">${icon}</span> ${note || ''} ${note ? '<br/>' : ''}<span class="small ${cls}">${warnText}</span>`;
+            $('#postPick').style.display = '';
+            // Keep the link visible and prominent
+            $('#nextLinkBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function runPlayerFlow(params) {
+            const pl = dec(params.pl);
+            const p = parseInt(params.p, 10);
+            const r = parseInt(params.r, 10);
+            const dir = parseInt(params.dir, 10) === -1 ? -1 : 1;
+            const alg = params.alg || Config.defaultAlgorithm;
+            const R = parseInt(params.R, 10) || Config.defaultRounds;
+            const d = params.d;
+            if (!Array.isArray(pl) || p < 0 || p >= pl.length || !d) { setError('Invalid link. Missing or incorrect parameters.'); return; }
+
+            // Accept incoming pre-packs and persist for this seat
+            let incomingPP = null;
+            if (params.pp) {
+                try { incomingPP = dec(params.pp); } catch { incomingPP = null; }
+            }
+            if (incomingPP) {
+                savePrePacks(d, p, incomingPP);
+            }
+
+            // Apply starting cards once per draft from algorithm config (not from URL)
+            const alreadyApplied = localStorage.getItem(startingAppliedKey(d, p)) === '1';
+            if (!alreadyApplied) {
+                const algCfg = Config.algorithms[alg] || {};
+                const startingCards = Array.isArray(algCfg.startingCards) ? algCfg.startingCards : [];
+                if (startingCards.length) {
+                    const picksObj = getPicks(d, p);
+                    const r0 = '0';
+                    if (!picksObj.rounds[r0]) picksObj.rounds[r0] = [];
+                    for (const sc of startingCards) {
+                        const id = Array.isArray(sc) ? sc[0] : sc && sc.id;
+                        const count = Array.isArray(sc) ? (sc[1] || 1) : ((sc && sc.count) || 1);
+                        if (!id) continue;
+                        for (let i = 0; i < count; i++) {
+                            picksObj.rounds[r0].push({ cardId: id, packCount: 0, starting: true });
+                        }
+                    }
+                    savePicks(d, p, picksObj);
+                }
+                localStorage.setItem(startingAppliedKey(d, p), '1');
+            }
+
+            $('#resultsList').textContent = aggregateCounts(d, p).join('\n');
+            renderSeatInfo(pl, p, r, dir, R);
+
+            const isStart = !!params.start;
+            let packIds = null;
+
+            // Prefer using provided pack (host-prebuilt for round starts, or passed packs mid-round)
+            if (params.pack) {
+                try {
+                    packIds = dec(params.pack);
+                    if (!Array.isArray(packIds)) throw new Error('not array');
+                    $('#packHint').textContent = isStart ? 'New pack. Pick one card.' : 'Pack passed to you. Pick one card.';
+                } catch (e) { setError('Could not read incoming pack.'); return; }
+            } else if (isStart) {
+                // Use pre-generated pack for this round if available
+                const storedPP = getPrePacks(d, p);
+                const fromPP = storedPP && storedPP[String(r)];
+                if (fromPP && Array.isArray(fromPP)) {
+                    packIds = fromPP.slice();
+                    $('#packHint').textContent = 'New pack. Pick one card.';
+                } else {
+                    // Fallback for backwards compatibility if host didn't prebuild
+                    const built = buildPack(alg);
+                    if (!built) { setError('Could not build a pack with the current algorithm and rules. Please adjust configuration.'); return; }
+                    packIds = built;
+                    $('#packHint').textContent = 'New pack. Pick one card.';
+                }
+            } else {
+                setError('No pack data present.');
+                return;
+            }
+
+            $('#packPanel').style.display = '';
+            const grid = $('#packGrid'); grid.innerHTML = '';
+            let currentPickState = null;
+
+            const packSize = computePackSize(alg);
+
+            function applyPickUI(pickedId, { save = true, severe = false } = {}) {
+                if (grid.dataset.locked === '1') return;
+                grid.dataset.locked = '1';
+                const packCountAtPick = packIds.length;
+
+                if (save) {
+                    // Save/overwrite pick keyed by (round, packCount)
+                    addPick(d, p, r, pickedId, packCountAtPick);
+                }
+                $('#resultsList').textContent = aggregateCounts(d, p).join('\n');
+
+                currentPickState = { pickedId, packCount: packCountAtPick, originalPack: packIds.slice() };
+
+                // Compute remaining
+                const idx = packIds.indexOf(pickedId);
+                const remaining = packIds.slice();
+                if (idx !== -1) remaining.splice(idx, 1);
+
+                function undoFlow() {
+                    // Undo by (round, packCount)
+                    undoPick(d, p, r, currentPickState.pickedId, currentPickState.packCount);
+                    $('#postPick').style.display = 'none';
+                    packIds = currentPickState.originalPack.slice();
+                    grid.style.opacity = '';
+                    renderPackGrid();
+                }
+
+                // Dim only non-picked cards and highlight the picked card
+                Array.from(grid.children).forEach(ch => {
+                    if (ch.dataset.cardId === pickedId) {
+                        ch.style.opacity = '';
+                        ch.classList.add('picked');
+                    } else {
+                        ch.style.opacity = '0.35';
+                    }
+                });
+
+                if (remaining.length > 0) {
+                    const n = pl.length;
+                    const np = nextSeatIndex(p, dir, n);
+                    const link = buildLink({ d, p: np, pl, r, dir, alg, R, pack: remaining });
+                    // New prefix logic: show the number of cards taken so far after your pick (1,2,3,...)
+                    const labelNumber = Math.max(1, packSize - packCountAtPick + 1);
+                    const prefix = `Round ${r}, Card ${labelNumber}:`;
+                    setNextLink(link, `Send this link to ${pl[np]}`, 'Share this link with the next player. They will receive the pack without your chosen card.', undoFlow, prefix, severe);
+                } else {
+                    handleEmptyAfterPick(pl, p, r, dir, alg, R, d, undoFlow, severe);
+                }
+            }
+
+            function renderPackGrid() {
+                grid.innerHTML = '';
+                grid.dataset.locked = '0';
+                const packCards = packIds.map(id => CARD_BY_ID[id]).filter(Boolean);
+                if (!packCards.length) { handleEmptyAfterPick(pl, p, r, dir, alg, R, d, null); return; }
+                packCards.forEach(c => {
+                    const node = makeCard(c, true, (picked) => {
+                        applyPickUI(picked.id, { save: true, severe: false });
+                    });
+                    grid.appendChild(node);
+                });
+
+                // If a pick for this specific pack was already made (same packCount), restore UI as if clicked
+                const picksObj = getPicks(d, p);
+                const arr = (picksObj.rounds && picksObj.rounds[String(r)]) || [];
+                const existing = arr.find(x => x && typeof x === 'object' && x.packCount === packIds.length);
+                if (existing && existing.cardId) {
+                    applyPickUI(existing.cardId, { save: false, severe: true });
+                }
+            }
+
+            renderPackGrid();
+
+            if (isStart) $('#packTitle').textContent = 'Your New Pack';
+            else $('#packTitle').textContent = 'Incoming Pack';
+        }
+
+        function handleEmptyAfterPick(pl, p, r, dir, alg, R, d, onUndo, severe = false) {
+            $('#packGrid').innerHTML = '';
+            $('#packPanel').style.display = '';
+            if (r < R) {
+                const nextDir = -dir;
+                const nextRound = r + 1;
+
+                // Load pre-generated pack for the next round, fallback to building if missing
+                const pp = getPrePacks(d, p);
+                let nextPack = pp && pp[String(nextRound)];
+                if (!nextPack) {
+                    nextPack = buildPack(alg) || [];
+                }
+
+                const link = buildLink({ d, p, pl, r: nextRound, dir: nextDir, alg, R, start: true, pack: nextPack, pp });
+                const prefix = `Round ${nextRound} start:`;
+                setNextLink(link, 'Start your next pack', 'This round is finished. Use this link to generate your next pack.', onUndo, prefix, severe);
+            } else {
+                $('#postPick').style.display = 'none';
+            }
+        }
+
+        // Router
+        const params = qs();
+        function start() {
+            if (!params.d) {
+                setupHost();
+            } else {
+                $('#playerScreen').style.display = '';
+                runPlayerFlow(params);
+            }
+        }
+        start();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,51 @@
+side = "runner"
+excludes = ["matryoshka", "jeitinho", "direct_access", "charm_offensive"]
+rares = [
+    "endurance",
+    "rezeki",
+    "self_modifying_code",
+    "simulchip",
+    "trick_shot",
+
+    "deep_dive",
+    "daily_casts",
+    "the_class_act",
+    "steelskin_scarring",
+    "bukhgalter",
+
+    "boomerang",
+    "botulus",
+    "tsakhia_bankhar_gantulga",
+    "pinhole_threading",
+    "hermes",
+
+    "bravado",
+    "world_tree",
+    "moshing",
+    "the_twinning",
+    "clean_getaway",
+
+    "dreamnet",
+    "cleaver",
+    "burner",
+    "transfer_of_wealth",
+    "fermenter",
+
+    "pennyshaver",
+    "mutual_favor",
+    "arruaceiras_crew",
+    "muse",
+    "chastushka",
+
+    "paladin_poemu",
+    "creative_commission",
+    "conduit",
+    "k2cp_turbine",
+    "leech",
+
+    "buzzsaw",
+    "finality",
+    "mystic_maemi",
+    "aniccam",
+    "cezve",
+]
