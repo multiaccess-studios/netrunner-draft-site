@@ -12,4 +12,4 @@ Everything else present is human code used to generate the information that need
 7. Wait for a message from the player before you in draft order, click the link they send you and go back to step 5.
 8. Eventually you will get a pack with only one card in it, after choosing it you can see your full list of cards formatted for JNET. This is also visible at the bottom of the page on every draft pick you make.
 
-The pack algorithm here in particular guaruntees you each pack will contain one good card (top 40 ish in the cardpool on trash or busto), a spread of cards from every faction, and a spread of cards from every card type.
+The pack algorithm here in particular guarantees you each pack will contain one good card (top 40 ish in the cardpool on trash or busto), a spread of cards from every faction, and a spread of cards from every card type.
